@@ -387,7 +387,7 @@ export default function HomePage() {
             <li><a href="/games" className="navbar-link">🎮 Games</a></li>
             <li><a href="/encyclopedia" className="navbar-link">📖 Encyclopedia</a></li>
             <li><a href="/playbook" className="navbar-link">Playbook</a></li>
-            <li><a href="/dashboard" className="btn btn-primary btn-sm" id="cta-navbar">Start Learning</a></li>
+            <li><a href="/select-grade" className="btn btn-primary btn-sm" id="cta-navbar">Start Learning</a></li>
           </ul>
         </div>
       </nav>
@@ -412,7 +412,7 @@ export default function HomePage() {
               all aligned with the KICD Competency-Based Curriculum.
             </p>
             <div className="hero-actions">
-              <a href="/dashboard" className="btn btn-primary btn-lg" id="cta-hero-start">
+              <a href="/select-grade" className="btn btn-primary btn-lg" id="cta-hero-start">
                 🚀 Start Learning Free
               </a>
               <a href="/playbook" className="btn btn-secondary btn-lg" id="cta-hero-playbook">
@@ -631,7 +631,7 @@ export default function HomePage() {
                 <li>Basic games access</li>
                 <li>Math & Environment subjects</li>
               </ul>
-              <a href="/dashboard" className="btn btn-secondary" style={{ width: '100%' }} id="cta-free">Get Started Free</a>
+              <a href="/select-grade" className="btn btn-secondary" style={{ width: '100%' }} id="cta-free">Get Started Free</a>
             </div>
             {/* Premium Plan */}
             <div className="glass-card pricing-card featured">
@@ -649,7 +649,7 @@ export default function HomePage() {
                 <li>Parent progress dashboard</li>
                 <li>Priority AI responses</li>
               </ul>
-              <a href="/dashboard" className="btn btn-primary" style={{ width: '100%' }} id="cta-premium">Start Premium Trial</a>
+              <a href="/select-grade" className="btn btn-primary" style={{ width: '100%' }} id="cta-premium">Start Premium Trial</a>
             </div>
           </div>
         </div>
@@ -683,7 +683,7 @@ export default function HomePage() {
                 Join thousands of Kenyan children learning with RoboKid. It&apos;s free to start!
               </p>
               <div style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <a href="/dashboard" className="btn btn-primary btn-lg" id="cta-bottom-start">🚀 Start Learning Now</a>
+                <a href="/select-grade" className="btn btn-primary btn-lg" id="cta-bottom-start">🚀 Start Learning Now</a>
                 <a href="/playbook" className="btn btn-secondary btn-lg" id="cta-bottom-playbook">📕 Read the Playbook</a>
               </div>
             </div>

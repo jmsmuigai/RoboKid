@@ -86,6 +86,35 @@ export const GRADES = [
   { grade: 1 as const, label: 'Grade 1', age: '6 years', color: '#22D3EE', emoji: '🌱' },
   { grade: 2 as const, label: 'Grade 2', age: '7 years', color: '#A78BFA', emoji: '🌿' },
   { grade: 3 as const, label: 'Grade 3', age: '8 years', color: '#FB923C', emoji: '🌳' },
+  { grade: 4 as const, label: 'Grade 4', age: '9 years', color: '#34D399', emoji: '🍀' },
+  { grade: 5 as const, label: 'Grade 5', age: '10 years', color: '#60A5FA', emoji: '🌴' },
+  { grade: 6 as const, label: 'Grade 6', age: '11 years', color: '#818CF8', emoji: '🎄' },
+  { grade: 7 as const, label: 'Advanced', age: '12-14 years', color: '#F87171', emoji: '🚀' },
+];
+
+/** Kid-friendly AI and Robotics jokes */
+export const ROBOT_JOKES = [
+  "Why did the robot go to Alliance High School? To get smarter micro-chips! 🏫",
+  "What is a robot's favorite Kenyan food? Micro-chips and Ugali! 🫓",
+  "Why did the robot go to the Maasai Mara? To take a byte out of nature! 🦁",
+  "How does a robot greet a friend? With a high-five megabyte! 🖐️",
+  "Why was the robot sad? Because its creator kept pressing its buttons! 🕹️",
+  "What do you call a robot that drives a matatu? A self-driving commuter! 🚗",
+  "Why did the robot visit Lake Victoria? To scan for computer fish! 🐟",
+  "Why did the phone go to the hospital? It had a bad screen virus! 🏥"
+];
+
+/** Local school names and locations */
+export const SCHOOLS = [
+  { name: 'Starehe Boys\' Centre', location: 'Nairobi' },
+  { name: 'Alliance High School', location: 'Kikuyu' },
+  { name: 'Nairobi Primary School', location: 'Westlands' },
+  { name: 'Alliance Girls\' High School', location: 'Kikuyu' },
+  { name: 'Moi Avenue Primary', location: 'Nairobi CBD' },
+  { name: 'Kisumu Academy', location: 'Kisumu' },
+  { name: 'Garissa Primary School', location: 'Garissa' },
+  { name: 'Mombasa Academy', location: 'Mombasa' },
+  { name: 'Kilimani Primary School', location: 'Kibera' }
 ];
 
 /** Kenyan cultural context terms for Gemini prompts */
@@ -101,6 +130,7 @@ export const KENYAN_CONTEXT = {
   animals: ['lion', 'elephant', 'giraffe', 'zebra', 'rhino', 'flamingo', 'hippo', 'cheetah', 'buffalo', 'leopard'],
   farming: ['shamba', 'tea plantation', 'coffee farm', 'maize field', 'dairy farm', 'fish pond'],
   currency: 'Kenya Shillings (KES)',
+  schools: ['Alliance High', 'Starehe Boys', 'Nairobi Primary', 'Kisumu Academy', 'Mombasa Academy', 'Garissa Primary'],
 };
 
 /** Revenue / subscription configuration */

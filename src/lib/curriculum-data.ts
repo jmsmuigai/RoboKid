@@ -1010,6 +1010,127 @@ export const curriculumTopics: Topic[] = [
     ],
     keywords: ['sarufi', 'nomino', 'vitenzi', 'vivumishi', 'aina za maneno'],
   },
+  // ============================================================
+  // GRADE 4 (Upper Primary) - Sample Topics
+  // ============================================================
+  {
+    id: 'g4-math-001',
+    title: 'Multiplication & Simple Fractions',
+    description: 'Learn multiplication with large numbers and simple fractions at Alliance Primary',
+    grade: 4, subject: 'mathematics', term: 1,
+    strand: 'Numbers',
+    subStrand: 'Fractions',
+    learningOutcomes: [
+      'Multiply 3-digit numbers by 2-digit numbers',
+      'Identify equivalent fractions using circles',
+      'Apply subtraction to fractions with same denominators'
+    ],
+    suggestedActivities: [
+      'Count packages of tea at the shamba',
+      'Divide chapati into equal pieces (fourths and eighths)',
+      'Multiply costs of bus tickets from Nakuru to Eldoret'
+    ],
+    keywords: ['multiply', 'fractions', 'equivalent', 'division']
+  },
+  {
+    id: 'g4-env-001',
+    title: 'Energy & Conservation in Kenya',
+    description: 'Explore renewable energy like solar panels and water conservation',
+    grade: 4, subject: 'environmental', term: 1,
+    strand: 'Conservation',
+    subStrand: 'Energy sources',
+    learningOutcomes: [
+      'Identify clean energy sources (solar, wind, geothermal)',
+      'Explain how school water tanks harvest rain in Kilimani',
+      'Demonstrate paper recycling methods'
+    ],
+    suggestedActivities: [
+      'Build a simple solar cooker box',
+      'Measure rain collector heights',
+      'Create poster on conserving Amboseli wildlife waterholes'
+    ],
+    keywords: ['energy', 'solar', 'wind', 'recycle', 'water']
+  },
+  {
+    id: 'g4-cre-001',
+    title: 'Creative Art & Traditional Drums',
+    description: 'Draw 3D shapes and learn traditional Kenyan drum patterns',
+    grade: 4, subject: 'creative', term: 1,
+    strand: 'Arts & Music',
+    subStrand: 'Rhythm',
+    learningOutcomes: [
+      'Draw shapes with perspective (3D boxes and cylinders)',
+      'Play basic syncopated drum beats on a conga',
+      'Perform a traditional folk dance from western Kenya'
+    ],
+    suggestedActivities: [
+      'Sketch Alliance High School buildings in 3D',
+      'Sequence a basic rhythmic beat on a drum kit',
+      'Sing school songs in multiple languages'
+    ],
+    keywords: ['drums', 'dance', '3d', 'perspective', 'drawing']
+  },
+  
+  // ============================================================
+  // ADVANCED LEVEL (Grade 7 - AI & Robotics Prep) - Sample Topics
+  // ============================================================
+  {
+    id: 'g7-math-001',
+    title: 'Programming Logic & Variables',
+    description: 'Introduction to writing math code in Python and Java at Alliance High',
+    grade: 7, subject: 'mathematics', term: 1,
+    strand: 'Algebra',
+    subStrand: 'Coding logic',
+    learningOutcomes: [
+      'Define coding variables for numbers and words',
+      'Write simple mathematical formulas in Python',
+      'Understand loops and conditional statements (if/else)'
+    ],
+    suggestedActivities: [
+      'Type print("Hello World") in the RoboKid Terminal',
+      'Create variables for Wanjiku\'s mangoes and run math operations',
+      'Explain how a robot counts loops (1 to 10)'
+    ],
+    keywords: ['python', 'java', 'variables', 'logic', 'terminal']
+  },
+  {
+    id: 'g7-env-001',
+    title: 'Robotics Sensors & Environmental Monitoring',
+    description: 'Learn how smart robots help us track soil moisture and weather',
+    grade: 7, subject: 'environmental', term: 1,
+    strand: 'Technology',
+    subStrand: 'Sensors',
+    learningOutcomes: [
+      'Explain how ultrasonic sensors act like robot eyes',
+      'Understand soil moisture sensors for tea farms in Nyeri',
+      'Design a smart irrigation system flowchart'
+    ],
+    suggestedActivities: [
+      'Simulate an distance sensor warning system in the terminal',
+      'Draw circuit diagrams connecting sensors to a brain',
+      'Discuss how self-driving tractors plow shambas'
+    ],
+    keywords: ['sensors', 'ultrasonic', 'circuits', 'irrigation', 'weather']
+  },
+  {
+    id: 'g7-cre-001',
+    title: 'Artificial Intelligence & Neural Networks',
+    description: 'How computers learn to recognize patterns and make decisions',
+    grade: 7, subject: 'creative', term: 1,
+    strand: 'Digital Literacy',
+    subStrand: 'Machine Learning',
+    learningOutcomes: [
+      'Explain what a Neural Network is in simple words',
+      'Understand how computers recognize images (mangoes vs bananas)',
+      'Discuss the ethics of AI and self-driving matatus'
+    ],
+    suggestedActivities: [
+      'Test the visual math helper with shape triggers',
+      'Teach a mock robot brain to identify sweet fruits',
+      'Explain how speech translation handles Somali and Kikuyu'
+    ],
+    keywords: ['artificial intelligence', 'neural network', 'pattern', 'ethics']
+  }
 ];
 
 /** Get topics by grade */
@@ -1030,7 +1151,7 @@ export function getTopicsBySubject(subject: Subject): Topic[] {
 /** Get topic count summary */
 export function getTopicCountSummary(): Record<Grade, Record<Subject, number>> {
   const summary = {} as Record<Grade, Record<Subject, number>>;
-  for (const grade of [1, 2, 3] as Grade[]) {
+  for (const grade of [1, 2, 3, 4, 5, 6, 7] as Grade[]) {
     summary[grade] = {} as Record<Subject, number>;
     for (const subject of ['mathematics', 'environmental', 'english', 'kiswahili', 'indigenous', 'creative', 'religious'] as Subject[]) {
       summary[grade][subject] = getTopicsByGradeAndSubject(grade, subject).length;

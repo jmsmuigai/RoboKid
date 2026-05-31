@@ -4,7 +4,7 @@
 // ============================================================
 
 /** Supported grade levels in Lower Primary */
-export type Grade = 1 | 2 | 3;
+export type Grade = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 /** The 7 rationalized CBC learning areas (2025 KICD framework) */
 export type Subject =

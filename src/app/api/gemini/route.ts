@@ -20,9 +20,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const validGrades = [1, 2, 3];
+    const validGrades = [1, 2, 3, 4, 5, 6, 7];
     if (!validGrades.includes(grade)) {
-      return NextResponse.json({ error: 'Invalid grade. Must be 1, 2, or 3' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid grade. Must be between 1 and 7' }, { status: 400 });
     }
 
     // Generate content based on type

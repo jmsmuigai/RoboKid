@@ -1,11 +1,19 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { SUBJECTS, GRADES, LANGUAGES } from '@/lib/constants';
 import { getTopicsByGradeAndSubject } from '@/lib/curriculum-data';
 import { getQuestionsByGradeAndSubject } from '@/lib/exam-bank';
 import { loadModel, getModelStats } from '@/lib/learning-model';
 import type { Grade, Subject, Language, ExamQuestion } from '@/types';
+
+// Sound and interactive components
+import { playClick, playCorrect, playIncorrect, playSuccess, startBackingBeat, stopBackingBeat, isBeatPlaying } from '@/lib/sound-manager';
+import VisualMathHelper from '@/components/VisualMathHelper';
+import BlackboardNote from '@/components/BlackboardNote';
+import Terminal from '@/components/Terminal';
+import MotherTongueCard from '@/components/MotherTongueCard';
 
 /* ============================================================
    RoboKid Dashboard — Interactive Learning Hub
@@ -35,10 +43,16 @@ function DashboardSubjectCard({ subject, grade, language, onSelect }: {
   const info = SUBJECTS[subject];
   const topics = getTopicsByGradeAndSubject(grade, subject);
   const questions = getQuestionsByGradeAndSubject(grade, subject);
+  
+  const handleSelect = () => {
+    playClick();
+    onSelect(subject);
+  };
+
   return (
     <button
       className="subject-card"
-      onClick={() => onSelect(subject)}
+      onClick={handleSelect}
       style={{ '--card-accent': info.color, textAlign: 'left', width: '100%', cursor: 'pointer', border: `1px solid ${info.color}20` } as React.CSSProperties}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
@@ -68,16 +82,30 @@ function QuizPanel({ questions, onClose }: { questions: ExamQuestion[]; onClose:
   const [answered, setAnswered] = useState(false);
 
   const q = questions[current];
+
+  useEffect(() => {
+    if (showResult) {
+      playSuccess();
+    }
+  }, [showResult]);
+
   if (!q) return null;
 
   const handleSelect = (option: string) => {
     if (answered) return;
     setSelected(option);
     setAnswered(true);
-    if (option === q.correctAnswer) setScore(s => s + 1);
+    
+    if (option === q.correctAnswer) {
+      playCorrect();
+      setScore(s => s + 1);
+    } else {
+      playIncorrect();
+    }
   };
 
   const handleNext = () => {
+    playClick();
     if (current + 1 >= questions.length) {
       setShowResult(true);
     } else {
@@ -100,8 +128,8 @@ function QuizPanel({ questions, onClose }: { questions: ExamQuestion[]; onClose:
         </p>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>You scored {pct}%</p>
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
-          <button className="btn btn-primary" onClick={() => { setCurrent(0); setScore(0); setShowResult(false); setSelected(null); setAnswered(false); }}>Try Again</button>
-          <button className="btn btn-secondary" onClick={onClose}>Back</button>
+          <button className="btn btn-primary" onClick={() => { playClick(); setCurrent(0); setScore(0); setShowResult(false); setSelected(null); setAnswered(false); }}>Try Again</button>
+          <button className="btn btn-secondary" onClick={() => { playClick(); onClose(); }}>Back</button>
         </div>
       </div>
     );
@@ -114,6 +142,10 @@ function QuizPanel({ questions, onClose }: { questions: ExamQuestion[]; onClose:
         <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Score: {score}</span>
       </div>
       <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>{q.question}</h3>
+      
+      {/* Visual Assistant for Mangoes / Bananas / Shapes */}
+      <VisualMathHelper question={q.question} />
+
       {q.options && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
           {q.options.map((opt) => {
@@ -234,54 +266,125 @@ function AIPuzzleGenerator({ grade, subject, language }: { grade: Grade; subject
 // ---------- Coding Lab ----------
 function CodingLab() {
   const [activeLesson, setActiveLesson] = useState(0);
+  const [terminalOutput, setTerminalOutput] = useState<string>('');
+
   const lessons = [
-    { title: '🖨️ Hello World', code: 'print("Habari RoboKid!")\nprint("I am learning to code!")', output: 'Habari RoboKid!\nI am learning to code!', desc: 'Your first program! Tell the computer to say hello.' },
-    { title: '🧮 Math Robot', code: 'mangoes = 3\nmore = 2\ntotal = mangoes + more\nprint(f"Wanjiku has {total} mangoes!")', output: 'Wanjiku has 5 mangoes!', desc: 'Teach the robot to solve math problems with variables.' },
-    { title: '🔄 Counting Loop', code: 'for i in range(1, 6):\n    print(f"Counting: {i}")\nprint("Done! 🎉")', output: 'Counting: 1\nCounting: 2\nCounting: 3\nCounting: 4\nCounting: 5\nDone! 🎉', desc: 'Make the robot count using a loop — just like counting passengers on a matatu!' },
-    { title: '🎨 Drawing Shapes', code: 'import turtle\nt = turtle.Turtle()\nfor _ in range(4):\n    t.forward(100)\n    t.right(90)\n# Draws a square!', output: '🟦 A square appears on screen!', desc: 'Use Python Turtle to draw shapes — like the Kenyan flag!' },
+    { 
+      title: '🖨️ Hello World', 
+      code: 'print("Habari RoboKid!")\nprint("I am learning to code!")', 
+      desc: 'Your first program! Tell the computer to say hello.',
+      blackboard: {
+        title: 'Python: Hello World',
+        notes: [
+          'print() tells the computer to display text!',
+          'Whatever is inside the quotes " " is printed.',
+          'Try typing it in the terminal yourself!'
+        ],
+        formula: 'print("Your Message Here")'
+      }
+    },
+    { 
+      title: '🧮 Math Robot', 
+      code: 'mangoes = 3\nmore = 2\ntotal = mangoes + more\nprint(f"Wanjiku has {total} mangoes!")', 
+      desc: 'Teach the robot to solve math problems with variables.',
+      blackboard: {
+        title: 'Variables & Math',
+        notes: [
+          'Variables are box containers for data.',
+          'Wanjiku has mangoes = 3.',
+          'total adds variables together!'
+        ],
+        formula: 'total = mangoes + more'
+      }
+    },
+    { 
+      title: '🔄 Counting Loop', 
+      code: 'for i in range(1, 6):\n    print(f"Counting: {i}")\nprint("Done! 🎉")', 
+      desc: 'Make the robot count using a loop — just like counting passengers on a matatu!',
+      blackboard: {
+        title: 'Python Loops',
+        notes: [
+          'Loops repeat actions automatically.',
+          'for i in range(1, 6) counts from 1 to 5.',
+          'It saves us writing print() 5 times!'
+        ],
+        formula: 'for i in range(start, end):'
+      }
+    },
+    { 
+      title: '🎨 Drawing Shapes', 
+      code: 'import robot\nrobot.draw_shape("square", color="purple")\nprint("🟦 A colorful square appears!")', 
+      desc: 'Use Python commands to draw colorful shapes on screen.',
+      blackboard: {
+        title: 'Drawing Shapes',
+        notes: [
+          'Robots can draw with simple commands.',
+          'draw_shape() takes a shape and color.',
+          'Try drawing a triangle or circle!'
+        ],
+        formula: 'draw_shape("square", color="purple")'
+      }
+    },
   ];
+
+  const handleSelectLesson = (idx: number) => {
+    playClick();
+    setActiveLesson(idx);
+    setTerminalOutput('');
+  };
 
   return (
     <div className="glass-card" style={{ padding: '2rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
         <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>💻</div>
         <div>
-          <h3 style={{ fontFamily: 'var(--font-fun)', fontSize: '1.1rem' }}>Code Lab</h3>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Learn Python with Kenyan examples</p>
+          <h3 style={{ fontFamily: 'var(--font-fun)', fontSize: '1.1rem' }}>Code Lab Terminal</h3>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Interactive Python console with local schools examples</p>
         </div>
       </div>
       
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
         {lessons.map((l, i) => (
-          <button key={i} onClick={() => setActiveLesson(i)} style={{
-            padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-full)', fontSize: '0.8rem',
+          <button key={i} onClick={() => handleSelectLesson(i)} style={{
+            padding: '0.4rem 1rem', borderRadius: 'var(--radius-full)', fontSize: '0.8rem',
             background: i === activeLesson ? 'var(--color-environment)' : 'var(--bg-glass)',
             color: i === activeLesson ? 'white' : 'var(--text-secondary)',
             border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)',
+            fontWeight: 600, transition: 'all 0.2s'
           }}>{l.title}</button>
         ))}
       </div>
 
-      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>{lessons[activeLesson].desc}</p>
+      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>{lessons[activeLesson].desc}</p>
 
-      <div style={{ background: '#0D1117', borderRadius: 'var(--radius-md)', padding: '1.25rem', marginBottom: '0.75rem', fontFamily: 'monospace', fontSize: '0.85rem', lineHeight: 1.7, color: '#E6EDF3', border: '1px solid #30363D', overflow: 'auto' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#FF5F57' }} />
-          <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#FFBD2E' }} />
-          <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#28C840' }} />
-        </div>
-        {lessons[activeLesson].code.split('\n').map((line, i) => (
-          <div key={i}>
-            <span style={{ color: '#6E7681', marginRight: '1rem', userSelect: 'none' }}>{i + 1}</span>
-            <span>{line.replace(/print/g, '\x1b[38;5;81mprint\x1b[0m')
-              .replace(/"([^"]*)"/g, '"$1"')
-            }</span>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        {/* Left: Blackboard note */}
+        <BlackboardNote 
+          title={lessons[activeLesson].blackboard.title}
+          notes={lessons[activeLesson].blackboard.notes}
+          formula={lessons[activeLesson].blackboard.formula}
+        />
+
+        {/* Right: Code editor and prompt */}
+        <div>
+          <div style={{ background: '#0D1117', borderRadius: '12px 12px 0 0', padding: '1rem', fontFamily: 'monospace', fontSize: '0.85rem', color: '#E6EDF3', border: '1px solid #30363D', borderBottom: 'none' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 700 }}>PYTHON EDITOR:</span>
+            <div style={{ marginTop: '0.5rem' }}>
+              {lessons[activeLesson].code.split('\n').map((line, i) => (
+                <div key={i}>
+                  <span style={{ color: '#6E7681', marginRight: '1rem', userSelect: 'none' }}>{i + 1}</span>
+                  <span>{line}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
-
-      <div style={{ background: 'rgba(16,185,129,0.08)', borderRadius: 'var(--radius-md)', padding: '1rem', border: '1px solid rgba(16,185,129,0.2)', fontFamily: 'monospace', fontSize: '0.85rem', color: 'var(--color-environment-light)', whiteSpace: 'pre-wrap' }}>
-        <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>OUTPUT:</span>{'\n'}{lessons[activeLesson].output}
+          
+          {/* Interactive CRT Terminal */}
+          <Terminal 
+            initialCode={lessons[activeLesson].code} 
+            onCodeRun={(out) => setTerminalOutput(out)}
+          />
+        </div>
       </div>
     </div>
   );
@@ -418,13 +521,116 @@ function ImageGallery() {
   );
 }
 
+// ---------- Dashboard Videos Tab ----------
+function DashboardVideosTab() {
+  const [selectedVid, setSelectedVid] = useState('n_J7wTfBvN0');
+  const videos = [
+    { id: 'n_J7wTfBvN0', title: 'Ubongo Kids — Learning Math and Coding Concepts!', creator: 'Ubongo Kids', duration: '12:45', thumbnail: '🦁' },
+    { id: 'OqK5l4S0Wk8', title: 'Akili and Me — Counting Numbers & Fruit Matching!', creator: 'Akili and Me', duration: '8:30', thumbnail: '🍌' },
+    { id: 'h4cQpP3YmZc', title: 'How do Robots Work? Simple Robotics Guide for Kids', creator: 'RoboKid Academy', duration: '10:15', thumbnail: '🤖' },
+    { id: 'E7B15-xR_d8', title: 'The Hare and the Tortoise (Kenyan Savanna Edition)', creator: 'African Folk Tales', duration: '14:20', thumbnail: '🐢' }
+  ];
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+      <div style={{ gridColumn: 'span 2', minWidth: '320px' }}>
+        <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-subtle)', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
+          <iframe
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+            src={`https://www.youtube-nocookie.com/embed/${selectedVid}?autoplay=0&rel=0&showinfo=0`}
+            title="RoboKid Safe Player"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+            allowFullScreen
+          />
+        </div>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', marginTop: '1rem', color: '#fff' }}>
+          {videos.find(v => v.id === selectedVid)?.title}
+        </h3>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <h4 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}>Up Next 📺</h4>
+        {videos.map(v => (
+          <div key={v.id} onClick={() => { playClick(); setSelectedVid(v.id); }} style={{
+            display: 'flex', gap: '0.75rem', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer',
+            background: selectedVid === v.id ? 'rgba(251, 146, 60, 0.1)' : 'var(--bg-glass)',
+            border: selectedVid === v.id ? '1px solid #FB923C' : '1px solid var(--border-subtle)'
+          }}>
+            <div style={{ width: '60px', height: '45px', background: '#1e293b', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>{v.thumbnail}</div>
+            <div>
+              <h5 style={{ fontSize: '0.8rem', color: '#fff', margin: 0, lineHeight: 1.3 }}>{v.title}</h5>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{v.creator}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ---------- Main Dashboard ----------
 export default function DashboardPage() {
+  const router = useRouter();
+  const [stage, setStage] = useState<string>('g1-3');
   const [selectedGrade, setSelectedGrade] = useState<Grade>(1);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('english');
   const [activeSubject, setActiveSubject] = useState<Subject | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
-  const [activeTab, setActiveTab] = useState<'learn' | 'quiz' | 'code' | 'ai' | 'generate' | 'gallery'>('learn');
+  const [activeTab, setActiveTab] = useState<'learn' | 'quiz' | 'code' | 'ai' | 'generate' | 'gallery' | 'videos' | 'lugha'>('learn');
+  const [isBeatActive, setIsBeatActive] = useState(false);
+  const [isGatedLoaded, setIsGatedLoaded] = useState(false);
+
+  // Check stage gating on load
+  useEffect(() => {
+    const storedStage = localStorage.getItem('robokid-stage');
+    const storedGrade = localStorage.getItem('robokid-selected-grade');
+    
+    if (!storedStage) {
+      router.push('/select-grade');
+    } else {
+      setStage(storedStage);
+      if (storedGrade) {
+        setSelectedGrade(Number(storedGrade) as Grade);
+      } else {
+        setSelectedGrade(storedStage === 'g1-3' ? 1 : storedStage === 'g4-6' ? 4 : 7);
+      }
+      setIsGatedLoaded(true);
+    }
+  }, [router]);
+
+  const toggleBackingTrack = () => {
+    playClick();
+    if (isBeatActive) {
+      stopBackingBeat();
+      setIsBeatActive(false);
+    } else {
+      startBackingBeat();
+      setIsBeatActive(true);
+    }
+  };
+
+  // Stop beat when leaving dashboard
+  useEffect(() => {
+    return () => {
+      stopBackingBeat();
+    };
+  }, []);
+
+  if (!isGatedLoaded) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050816' }}>
+        <MiniRobot mood="thinking" size={80} />
+      </div>
+    );
+  }
+
+  // Filter grades to show in selector based on selected stage
+  const visibleGrades = GRADES.filter(g => {
+    if (stage === 'g1-3') return g.grade >= 1 && g.grade <= 3;
+    if (stage === 'g4-6') return g.grade >= 4 && g.grade <= 6;
+    if (stage === 'advanced') return g.grade === 7;
+    return g.grade <= 3;
+  });
 
   const subjectList: Subject[] = ['mathematics', 'environmental', 'english', 'kiswahili', 'indigenous', 'creative'];
   const quizQuestions = activeSubject ? getQuestionsByGradeAndSubject(selectedGrade, activeSubject) : [];
@@ -444,9 +650,25 @@ export default function DashboardPage() {
             <li><a href="/encyclopedia" className="navbar-link">📖 Encyclopedia</a></li>
             <li><a href="/playbook" className="navbar-link">Playbook</a></li>
             <li>
+              <button 
+                onClick={toggleBackingTrack} 
+                className="btn btn-secondary btn-sm" 
+                style={{
+                  background: isBeatActive ? 'rgba(16, 185, 129, 0.2)' : 'var(--bg-glass)',
+                  borderColor: isBeatActive ? '#10B981' : 'var(--border-subtle)',
+                  color: isBeatActive ? '#10B981' : 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem'
+                }}
+              >
+                {isBeatActive ? '🎵 Beats On' : '🔇 Beats Off'}
+              </button>
+            </li>
+            <li>
               <div className="language-toggle">
                 {LANGUAGES.map(lang => (
-                  <button key={lang.code} className={`language-btn ${selectedLanguage === lang.code ? 'active' : ''}`} onClick={() => setSelectedLanguage(lang.code)}>
+                  <button key={lang.code} className={`language-btn ${selectedLanguage === lang.code ? 'active' : ''}`} onClick={() => { playClick(); setSelectedLanguage(lang.code); }}>
                     {lang.flag} {lang.code.substring(0, 2).toUpperCase()}
                   </button>
                 ))}
@@ -465,24 +687,34 @@ export default function DashboardPage() {
               {selectedLanguage === 'kiswahili' ? 'Karibu' : selectedLanguage === 'kikuyu' ? 'Wĩ mwega' : selectedLanguage === 'luo' ? 'Ber biro' : selectedLanguage === 'somali' ? 'Soo dhawoow' : 'Welcome'}, RoboKid! 🎉
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-              Grade {selectedGrade} · {LANGUAGES.find(l => l.code === selectedLanguage)?.label} · {GRADES.find(g => g.grade === selectedGrade)?.age}
+              Stage: <strong style={{ color: '#FB923C', textTransform: 'uppercase' }}>{stage === 'g1-3' ? 'Lower Primary' : stage === 'g4-6' ? 'Upper Primary' : 'Advanced AI & Robotics'}</strong> · Grade {selectedGrade} · {LANGUAGES.find(l => l.code === selectedLanguage)?.label}
             </p>
           </div>
+          
+          <button 
+            onClick={() => { playClick(); router.push('/select-grade'); }} 
+            className="btn btn-secondary btn-sm"
+            style={{ marginLeft: 'auto', border: '1px dashed #6366f1', color: '#818cf8' }}
+          >
+            🔄 Switch Stage
+          </button>
         </div>
 
-        {/* Grade Selector */}
-        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-          {GRADES.map(g => (
-            <button key={g.grade} onClick={() => { setSelectedGrade(g.grade); setActiveSubject(null); setShowQuiz(false); }} style={{
-              padding: '0.6rem 1.5rem', borderRadius: 'var(--radius-full)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.9rem',
-              background: selectedGrade === g.grade ? g.color : 'var(--bg-glass)', color: selectedGrade === g.grade ? '#050816' : 'var(--text-secondary)',
-              border: selectedGrade === g.grade ? 'none' : '1px solid var(--border-subtle)', cursor: 'pointer',
-              transition: 'all var(--transition-fast)', transform: selectedGrade === g.grade ? 'scale(1.05)' : 'scale(1)',
-            }}>
-              {g.emoji} {g.label}
-            </button>
-          ))}
-        </div>
+        {/* Grade Selector (only shows grade options for current stage) */}
+        {visibleGrades.length > 1 && (
+          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+            {visibleGrades.map(g => (
+              <button key={g.grade} onClick={() => { playClick(); setSelectedGrade(g.grade); setActiveSubject(null); setShowQuiz(false); }} style={{
+                padding: '0.6rem 1.5rem', borderRadius: 'var(--radius-full)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.9rem',
+                background: selectedGrade === g.grade ? g.color : 'var(--bg-glass)', color: selectedGrade === g.grade ? '#050816' : 'var(--text-secondary)',
+                border: selectedGrade === g.grade ? 'none' : '1px solid var(--border-subtle)', cursor: 'pointer',
+                transition: 'all var(--transition-fast)', transform: selectedGrade === g.grade ? 'scale(1.05)' : 'scale(1)',
+              }}>
+                {g.emoji} {g.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Tab Navigation */}
         <div style={{ display: 'flex', gap: '0.25rem', padding: '4px', background: 'var(--bg-glass)', borderRadius: 'var(--radius-full)', marginBottom: '2rem', border: '1px solid var(--border-subtle)', width: 'fit-content', flexWrap: 'wrap' }}>
@@ -493,8 +725,10 @@ export default function DashboardPage() {
             { key: 'ai' as const, label: '🤖 AI' },
             { key: 'generate' as const, label: '✨ Generate' },
             { key: 'gallery' as const, label: '🎨 Gallery' },
+            { key: 'videos' as const, label: '📺 Videos' },
+            { key: 'lugha' as const, label: '👅 Lugha Yetu' }
           ].map(tab => (
-            <button key={tab.key} onClick={() => { setActiveTab(tab.key as any); setShowQuiz(false); setActiveSubject(null); }} style={{
+            <button key={tab.key} onClick={() => { playClick(); setActiveTab(tab.key as any); setShowQuiz(false); setActiveSubject(null); }} style={{
               padding: '0.5rem 1.25rem', borderRadius: 'var(--radius-full)', fontSize: '0.9rem', fontWeight: 500,
               background: activeTab === tab.key ? 'var(--color-primary)' : 'transparent',
               color: activeTab === tab.key ? 'white' : 'var(--text-secondary)',
@@ -517,7 +751,7 @@ export default function DashboardPage() {
 
         {activeTab === 'learn' && activeSubject && !showQuiz && (
           <div>
-            <button onClick={() => setActiveSubject(null)} className="btn btn-secondary btn-sm" style={{ marginBottom: '1.5rem' }}>
+            <button onClick={() => { playClick(); setActiveSubject(null); }} className="btn btn-secondary btn-sm" style={{ marginBottom: '1.5rem' }}>
               ← Back to Subjects
             </button>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
@@ -527,7 +761,7 @@ export default function DashboardPage() {
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Grade {selectedGrade} · {getTopicsByGradeAndSubject(selectedGrade, activeSubject).length} topics</p>
               </div>
               {quizQuestions.length > 0 && (
-                <button className="btn btn-primary btn-sm" onClick={() => setShowQuiz(true)} style={{ marginLeft: 'auto' }}>
+                <button className="btn btn-primary btn-sm" onClick={() => { playClick(); setShowQuiz(true); }} style={{ marginLeft: 'auto' }}>
                   📝 Take Quiz ({quizQuestions.length} Qs)
                 </button>
               )}
@@ -567,7 +801,7 @@ export default function DashboardPage() {
 
         {activeTab === 'learn' && activeSubject && showQuiz && quizQuestions.length > 0 && (
           <div>
-            <button onClick={() => setShowQuiz(false)} className="btn btn-secondary btn-sm" style={{ marginBottom: '1.5rem' }}>
+            <button onClick={() => { playClick(); setShowQuiz(false); }} className="btn btn-secondary btn-sm" style={{ marginBottom: '1.5rem' }}>
               ← Back to {SUBJECTS[activeSubject].name}
             </button>
             <QuizPanel questions={quizQuestions} onClose={() => setShowQuiz(false)} />
@@ -585,7 +819,7 @@ export default function DashboardPage() {
                 const qs = getQuestionsByGradeAndSubject(selectedGrade, subject);
                 const info = SUBJECTS[subject];
                 return (
-                  <button key={subject} className="glass-card" onClick={() => { setActiveSubject(subject); setShowQuiz(true); setActiveTab('learn'); }} style={{
+                  <button key={subject} className="glass-card" onClick={() => { playClick(); setActiveSubject(subject); setShowQuiz(true); setActiveTab('learn'); }} style={{
                     padding: '1.5rem', cursor: 'pointer', textAlign: 'left', border: `1px solid ${info.color}20`,
                   }}>
                     <span style={{ fontSize: '2rem' }}>{info.icon}</span>
@@ -631,6 +865,10 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'gallery' && <ImageGallery />}
+
+        {activeTab === 'videos' && <DashboardVideosTab />}
+
+        {activeTab === 'lugha' && <MotherTongueCard />}
       </div>
     </main>
   );

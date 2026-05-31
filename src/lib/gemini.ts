@@ -48,7 +48,11 @@ IMPORTANT RULES:
 /** Generate a CBC-aligned puzzle */
 export async function generatePuzzle(grade: Grade, subject: Subject, language: Language): Promise<string> {
   const model = getModel();
-  const ageMap: Record<Grade, string> = { 1: '6-year-old', 2: '7-year-old', 3: '8-year-old' };
+  const ageMap: Record<Grade, string> = { 
+    1: '6-year-old', 2: '7-year-old', 3: '8-year-old', 
+    4: '9-year-old', 5: '10-year-old', 6: '11-year-old', 
+    7: '12-to-14-year-old (Advanced AI & Robotics)' 
+  };
 
   const subjectMap: Record<Subject, string> = {
     mathematics: 'Mathematics Activities (numbers, counting, shapes, measurement)',
@@ -110,7 +114,11 @@ export async function translateContent(
   grade: Grade
 ): Promise<string> {
   const model = getModel();
-  const ageMap: Record<Grade, string> = { 1: '6-year-old', 2: '7-year-old', 3: '8-year-old' };
+  const ageMap: Record<Grade, string> = { 
+    1: '6-year-old', 2: '7-year-old', 3: '8-year-old', 
+    4: '9-year-old', 5: '10-year-old', 6: '11-year-old', 
+    7: '12-to-14-year-old (Advanced AI & Robotics)' 
+  };
 
   const prompt = `${SYSTEM_PROMPT}
 
