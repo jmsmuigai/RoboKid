@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RoboKid 🤖🇰🇪
 
-## Getting Started
+**AI-Powered CBC Learning Platform for Kenyan Children (Grade 1-3)**
 
-First, run the development server:
+RoboKid is an award-winning educational platform designed specifically for Kenyan children in Grade 1 to Grade 3. Built on the Kenya Institute of Curriculum Development (KICD) Competency-Based Curriculum (CBC), RoboKid brings learning to life through artificial intelligence, interactive games, and mother tongue support.
+
+## 🌟 Features
+
+- **📖 CBC Encyclopedia** — 41 sub-strands, 160 learning outcomes, 164 activities from the official KICD Targeter
+- **🌐 5 Languages** — English, Kiswahili, Gĩkũyũ (Kikuyu), Dholuo (Luo), Somali with AI translation
+- **🤖 AI Content Generation** — Google Gemini generates unlimited puzzles, stories, and quizzes
+- **🎮 10+ Interactive Games** — Memory match, word search, math race, and more
+- **📝 150+ Exam Questions** — KNEC/KEYA-aligned practice assessments
+- **💻 Code Lab** — Python lessons with Kenyan examples
+- **📚 Content Agent** — Self-learning content library (stories, riddles, poems, vocabulary)
+- **🔤 Visual Dictionary** — 70+ words across 4 African languages with live translation
+- **🎨 African-Themed Design** — 7+ original illustrations celebrating Kenyan culture
+
+## 🛠️ Tech Stack
+
+- **Frontend:** Next.js 15 (App Router) + TypeScript
+- **AI:** Google Gemini 2.0 Flash API
+- **Translation:** MyMemory API (free) + Gemini + Built-in Dictionary
+- **Database:** Firebase Firestore (translation cache + learning model)
+- **Styling:** Custom CSS Design System (Dark mode, Glassmorphism)
+- **Images:** AI-generated African-themed educational illustrations
+
+## 🚀 Getting Started
 
 ```bash
+# Clone the repository
+git clone https://github.com/jmsmuigai/RoboKid.git
+cd RoboKid/robokid-app
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.local.example .env.local
+# Add your GOOGLE_API_KEY
+
+# Run the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/
+│   ├── page.tsx          # Landing page
+│   ├── dashboard/        # Interactive learning hub
+│   ├── encyclopedia/     # CBC curriculum browser
+│   ├── games/            # Games hub (10+ games)
+│   ├── playbook/         # Project playbook
+│   └── api/
+│       ├── gemini/       # AI content generation
+│       ├── encyclopedia/ # Curriculum API
+│       ├── translate/    # Translation API
+│       └── content/      # Content agent API
+├── lib/
+│   ├── cbc-encyclopedia.ts    # 41 KICD sub-strands
+│   ├── translation-service.ts # Multi-engine translator
+│   ├── content-agent.ts       # Self-learning content system
+│   ├── curriculum-data.ts     # Topic data
+│   ├── exam-bank.ts           # 150+ questions
+│   └── constants.ts           # Global config
+└── types/
+    └── index.ts               # TypeScript interfaces
+```
 
-## Learn More
+## 🇰🇪 Curriculum Coverage
 
-To learn more about Next.js, take a look at the following resources:
+| Subject | Strands | Sub-Strands |
+|---------|---------|-------------|
+| Mathematics | Numbers, Measurement, Geometry | 19 |
+| Environmental | Social, Natural, Health/Hygiene | 15 |
+| English | Listening, Reading, Writing, Comprehension | 4 |
+| Kiswahili | Kusikiliza, Kusoma, Ufahamu | 3 |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📄 License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+MIT License — Made with ❤️ in Kenya 🇰🇪
 
-## Deploy on Vercel
+## 👤 Author
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+James Muigai ([@jmsmuigai](https://github.com/jmsmuigai))
