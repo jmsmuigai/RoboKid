@@ -14,6 +14,7 @@ import VisualMathHelper from '@/components/VisualMathHelper';
 import BlackboardNote from '@/components/BlackboardNote';
 import Terminal from '@/components/Terminal';
 import MotherTongueCard from '@/components/MotherTongueCard';
+import Piano from '@/components/Piano';
 
 /* ============================================================
    RoboKid Dashboard — Interactive Learning Hub
@@ -568,6 +569,282 @@ function DashboardVideosTab() {
   );
 }
 
+// ---------- Textbook Lesson Notes & Exams ----------
+interface LessonNote {
+  id: string;
+  title: string;
+  icon: string;
+  notes: string[];
+  helperQuestion?: string;
+  cbeExam?: {
+    question: string;
+    options: string[];
+    correct: string;
+    explanation: string;
+  };
+}
+
+const LESSONS_BY_STAGE: Record<string, LessonNote[]> = {
+  'g1-3': [
+    {
+      id: 'g13-n1',
+      title: '🍎 Healthy Food Choices',
+      icon: '🥗',
+      notes: [
+        'Eating good food keeps us strong and prevents diseases!',
+        'We need Carbohydrates for energy (e.g. Ugali, Rice, Chapati).',
+        'We need Proteins to grow muscles (e.g. Beans, Eggs, Milk, Fish).',
+        'We need Vitamins to stay healthy (e.g. Mangoes, Bananas, Oranges).',
+        'Remember to wash your hands with clean water before eating!'
+      ],
+      helperQuestion: '2 bananas and 3 mangoes',
+      cbeExam: {
+        question: 'Which of the following foods gives us energy to run and play?',
+        options: ['A) Milk', 'B) Beans', 'C) Ugali', 'D) Spinach'],
+        correct: 'C',
+        explanation: 'Ugali is a carbohydrate which provides our bodies with clean energy!'
+      }
+    },
+    {
+      id: 'g13-n2',
+      title: '🦒 Animals and Their Habitats',
+      icon: '🐾',
+      notes: [
+        'Wild animals live in nature reserves and national parks in Kenya.',
+        'Lions (Simba) sleep under acacia trees in the open Maasai Mara savanna.',
+        'Giraffes (Twiga) eat green leaves from high branches using their long necks.',
+        'Hippos (Kiboko) spend the hot sunny days floating in lake waters.',
+        'We must protect animals and never destroy their forest homes.'
+      ],
+      helperQuestion: '3 lions and 2 giraffes',
+      cbeExam: {
+        question: 'Where would you find Simba (the lion) in Kenya?',
+        options: ['A) Floating in Lake Victoria', 'B) In the open savanna grasslands', 'C) On top of Mount Kenya', 'D) In a school garden'],
+        correct: 'B',
+        explanation: 'Lions live in grasslands and savanna environments like the Maasai Mara.'
+      }
+    }
+  ],
+  'g4-6': [
+    {
+      id: 'g46-n1',
+      title: '🌱 Soil and Kitchen Gardens',
+      icon: '🌻',
+      notes: [
+        'Soil is where we plant vegetables and fruits for our food.',
+        'Terracing and cover cropping are ways we stop soil erosion (loss).',
+        'Kitchen gardens (sack gardens) let us grow food in small spaces at school!',
+        'Organic manure (compost) feeds soil with nutrients to grow healthy plants.',
+        'Worms and insects help keep soil loose and healthy.'
+      ],
+      helperQuestion: '4 apples and 2 oranges',
+      cbeExam: {
+        question: 'How can we prevent soil from washing away when it rains?',
+        options: ['A) Watering the soil more', 'B) Planting cover crops and trees', 'C) Digging up the soil', 'D) Leaving the soil bare'],
+        correct: 'B',
+        explanation: 'Plants roots hold the soil particles together, stopping erosion!'
+      }
+    },
+    {
+      id: 'g46-n2',
+      title: '📐 Geometric Shapes & Drawing',
+      icon: '📐',
+      notes: [
+        'Geometry is the branch of math studying shapes and spaces.',
+        'A square has exactly 4 equal straight sides and 4 corners.',
+        'A circle is perfectly round and curved. It has no straight edges.',
+        'A triangle has 3 sides and 3 angles. Its angles sum up to 180 degrees!',
+        'You can draw shapes using simple loops and algorithms!'
+      ],
+      helperQuestion: 'drawing a square, circle, and triangle',
+      cbeExam: {
+        question: 'Which of the following shapes has 3 sides and 3 corners?',
+        options: ['A) Circle', 'B) Square', 'C) Triangle', 'D) Rectangle'],
+        correct: 'C',
+        explanation: 'Triangles are defined by having exactly 3 sides and 3 angles!'
+      }
+    }
+  ],
+  'advanced': [
+    {
+      id: 'adv-n1',
+      title: '🤖 How Artificial Intelligence Learns',
+      icon: '🧠',
+      notes: [
+        'Artificial Intelligence uses computers to do smart tasks.',
+        'Neural networks are computing networks inspired by the human brain.',
+        'Computers learn by looking at patterns in millions of data examples.',
+        'Weights adjust when errors are found, similar to trial-and-error learning.',
+        'This allows robots to recognize faces, drive cars, and translate languages.'
+      ],
+      helperQuestion: '5 stars',
+      cbeExam: {
+        question: 'What is a neural network in Artificial Intelligence?',
+        options: ['A) A metal spider web on robots', 'B) An algorithm inspired by how the human brain learns', 'C) A system to catch fish in the ocean', 'D) A type of computer keyboard'],
+        correct: 'B',
+        explanation: 'Neural networks mimic biological neurons to process complex patterns and learn!'
+      }
+    },
+    {
+      id: 'adv-n2',
+      title: '🔌 Sensors & Actuators in Robotics',
+      icon: '⚙️',
+      notes: [
+        'Robots interact with the physical world using sensors (inputs).',
+        'Distance sensors (ultrasonic) bounce sound waves to detect walls.',
+        'Light sensors allow robots to follow black lines on floors.',
+        'Actuators (outputs like motors) receive signals to perform movements.',
+        'Microcontrollers (like Arduino) connect the sensors and motors together.'
+      ],
+      helperQuestion: 'drawing a square',
+      cbeExam: {
+        question: 'Which component does a robot use to measure how far away a wall is?',
+        options: ['A) Motor', 'B) Battery', 'C) Distance sensor', 'D) Display screen'],
+        correct: 'C',
+        explanation: 'Distance sensors (ultrasonic) send sound pulses to compute distances.'
+      }
+    }
+  ]
+};
+
+function TextbookNotesPanel({ stage, selectedGrade }: { stage: string; selectedGrade: Grade }) {
+  const list = LESSONS_BY_STAGE[stage] || LESSONS_BY_STAGE['g1-3'];
+  const [activeLessonIdx, setActiveLessonIdx] = useState(0);
+  const [cbeAnswered, setCbeAnswered] = useState(false);
+  const [cbeSelected, setCbeSelected] = useState<string | null>(null);
+  const [cbeFeedback, setCbeFeedback] = useState<string | null>(null);
+
+  const lesson = list[activeLessonIdx];
+
+  const handleCbeSelect = (optionChar: string) => {
+    if (cbeAnswered) return;
+    setCbeSelected(optionChar);
+    setCbeAnswered(true);
+    if (optionChar === lesson.cbeExam?.correct) {
+      playCorrect();
+      setCbeFeedback('🎉 Correct! ' + lesson.cbeExam?.explanation);
+    } else {
+      playIncorrect();
+      setCbeFeedback('❌ Incorrect. ' + lesson.cbeExam?.explanation);
+    }
+  };
+
+  return (
+    <div className="glass-card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', borderRadius: '24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <span style={{ fontSize: '2.5rem' }}>📚</span>
+        <div>
+          <h2 style={{ fontFamily: 'var(--font-fun)', fontSize: '1.5rem' }}>CBC Textbook Notes & CBE Exams</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Read rationalized lessons and test yourself with current exams.</p>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+        {/* Left: Lessons Outline */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <h4 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}>Lessons Outline:</h4>
+          {list.map((item, idx) => (
+            <button
+              key={item.id}
+              onClick={() => { playClick(); setActiveLessonIdx(idx); setCbeAnswered(false); setCbeSelected(null); setCbeFeedback(null); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '1rem',
+                borderRadius: '16px',
+                border: activeLessonIdx === idx ? '2px solid var(--color-primary)' : '1px solid var(--border-subtle)',
+                background: activeLessonIdx === idx ? 'rgba(99,102,241,0.1)' : 'var(--bg-glass)',
+                cursor: 'pointer',
+                textAlign: 'left',
+                transition: 'all 0.2s',
+              }}
+            >
+              <span style={{ fontSize: '1.5rem' }}>{item.icon}</span>
+              <div>
+                <h4 style={{ color: '#FFF', fontSize: '0.9rem', marginBottom: 2 }}>{item.title}</h4>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Read &amp; Test</span>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Right: Chalkboard notes */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <BlackboardNote
+            title={lesson.title}
+            notes={lesson.notes}
+          />
+          {lesson.helperQuestion && (
+            <div style={{ background: 'var(--bg-glass)', padding: '1rem', borderRadius: '16px', border: '1px solid var(--border-subtle)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700 }}>VISUAL MATHEMATICAL HELPER:</span>
+              <VisualMathHelper question={lesson.helperQuestion} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* CBE Exam card */}
+      {lesson.cbeExam && (
+        <div style={{ background: 'var(--bg-glass-strong)', borderRadius: '20px', padding: '1.5rem', border: '1px solid rgba(99,102,241,0.2)' }}>
+          <span className="badge badge-warning" style={{ marginBottom: '0.75rem' }}>📝 CBE Practice Exam</span>
+          <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: '#FFF', marginBottom: '1rem', lineHeight: 1.5 }}>
+            {lesson.cbeExam.question}
+          </h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1rem' }}>
+            {lesson.cbeExam.options.map(opt => {
+              const optionChar = opt.trim().substring(0, 1);
+              const isSelected = cbeSelected === optionChar;
+              const isCorrect = optionChar === lesson.cbeExam?.correct;
+              let bg = 'var(--bg-glass)';
+              let border = '1px solid var(--border-subtle)';
+              
+              if (cbeAnswered && isCorrect) {
+                bg = 'rgba(16,185,129,0.15)';
+                border = '1px solid #10B981';
+              } else if (cbeAnswered && isSelected && !isCorrect) {
+                bg = 'rgba(239,68,68,0.15)';
+                border = '1px solid #EF4444';
+              } else if (isSelected) {
+                bg = 'rgba(99,102,241,0.15)';
+                border = '1px solid var(--color-primary)';
+              }
+
+              return (
+                <button
+                  key={opt}
+                  onClick={() => handleCbeSelect(optionChar)}
+                  style={{
+                    padding: '0.75rem 1rem',
+                    borderRadius: '12px',
+                    background: bg,
+                    border,
+                    color: 'var(--text-primary)',
+                    textAlign: 'left',
+                    cursor: cbeAnswered ? 'default' : 'pointer',
+                    fontSize: '0.85rem',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+          {cbeFeedback && (
+            <p style={{
+              fontSize: '0.85rem',
+              color: cbeFeedback.includes('Correct') ? '#34D399' : '#F87171',
+              fontFamily: 'var(--font-fun)',
+              lineHeight: 1.5
+            }}>{cbeFeedback}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------- Main Dashboard ----------
 export default function DashboardPage() {
   const router = useRouter();
@@ -576,9 +853,32 @@ export default function DashboardPage() {
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('english');
   const [activeSubject, setActiveSubject] = useState<Subject | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
-  const [activeTab, setActiveTab] = useState<'learn' | 'quiz' | 'code' | 'ai' | 'generate' | 'gallery' | 'videos' | 'lugha'>('learn');
+  const [activeTab, setActiveTab] = useState<'learn' | 'notes' | 'quiz' | 'code' | 'music' | 'ai' | 'generate' | 'gallery' | 'videos' | 'lugha'>('learn');
   const [isBeatActive, setIsBeatActive] = useState(false);
   const [isGatedLoaded, setIsGatedLoaded] = useState(false);
+  const [isBrightTheme, setIsBrightTheme] = useState(false);
+
+  // Initialize theme state on load
+  useEffect(() => {
+    const saved = localStorage.getItem('robokid-theme');
+    if (saved === 'bright') {
+      setIsBrightTheme(true);
+      document.documentElement.classList.add('bright-theme');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    playClick();
+    if (isBrightTheme) {
+      localStorage.setItem('robokid-theme', 'dark');
+      document.documentElement.classList.remove('bright-theme');
+      setIsBrightTheme(false);
+    } else {
+      localStorage.setItem('robokid-theme', 'bright');
+      document.documentElement.classList.add('bright-theme');
+      setIsBrightTheme(true);
+    }
+  };
 
   // Check stage gating on load
   useEffect(() => {
@@ -666,6 +966,22 @@ export default function DashboardPage() {
               </button>
             </li>
             <li>
+              <button 
+                onClick={toggleTheme} 
+                className="btn btn-secondary btn-sm" 
+                style={{
+                  background: isBrightTheme ? 'rgba(251, 191, 36, 0.2)' : 'var(--bg-glass)',
+                  borderColor: isBrightTheme ? '#FBBF24' : 'var(--border-subtle)',
+                  color: isBrightTheme ? '#D97706' : 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem'
+                }}
+              >
+                {isBrightTheme ? '🎒 Bright Mode' : '🌌 Dark Mode'}
+              </button>
+            </li>
+            <li>
               <div className="language-toggle">
                 {LANGUAGES.map(lang => (
                   <button key={lang.code} className={`language-btn ${selectedLanguage === lang.code ? 'active' : ''}`} onClick={() => { playClick(); setSelectedLanguage(lang.code); }}>
@@ -720,8 +1036,10 @@ export default function DashboardPage() {
         <div style={{ display: 'flex', gap: '0.25rem', padding: '4px', background: 'var(--bg-glass)', borderRadius: 'var(--radius-full)', marginBottom: '2rem', border: '1px solid var(--border-subtle)', width: 'fit-content', flexWrap: 'wrap' }}>
           {[
             { key: 'learn' as const, label: '📚 Learn' },
-            { key: 'quiz' as const, label: '📝 Quiz' },
-            { key: 'code' as const, label: '💻 Code' },
+            { key: 'notes' as const, label: '📖 Textbook Notes' },
+            { key: 'quiz' as const, label: '📝 Exams' },
+            { key: 'code' as const, label: '💻 Code Lab' },
+            { key: 'music' as const, label: '🎹 Music Lab' },
             { key: 'ai' as const, label: '🤖 AI' },
             { key: 'generate' as const, label: '✨ Generate' },
             { key: 'gallery' as const, label: '🎨 Gallery' },
@@ -869,6 +1187,10 @@ export default function DashboardPage() {
         {activeTab === 'videos' && <DashboardVideosTab />}
 
         {activeTab === 'lugha' && <MotherTongueCard />}
+
+        {activeTab === 'music' && <Piano />}
+
+        {activeTab === 'notes' && <TextbookNotesPanel stage={stage} selectedGrade={selectedGrade} />}
       </div>
     </main>
   );

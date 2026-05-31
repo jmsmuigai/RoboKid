@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { playClick } from '@/lib/sound-manager';
 
 /* ============================================================
    RoboKid Games Hub — 10 Interactive Learning Games
@@ -240,35 +241,227 @@ function SpellingBeeGame() {
     { word: 'JAMBO', kiswahili: 'Jambo', meaning: 'Hello in Kiswahili', audio: '🔊' },
     { word: 'BABA', kiswahili: 'Baba', meaning: 'Father', audio: '🔊' },
   ];
+  
   const [index, setIndex] = useState(0);
   const [input, setInput] = useState('');
   const [score, setScore] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  // Voice recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordedUrl, setRecordedUrl] = useState<string | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  // Speech Recognition states
+  const [isListening, setIsListening] = useState(false);
+
+  // Play robotic text-to-speech commentary
+  const speakRoboticComment = (text: string) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.pitch = 1.3;
+      utterance.rate = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const playTargetWord = () => {
+    // Say the target word out loud so the kid can hear it
+    speakRoboticComment(`The word is: ${words[index].kiswahili}. Meaning: ${words[index].meaning}.`);
+  };
+
+  // Start MediaRecorder & Speech Recognition
+  const startVoiceCapture = async () => {
+    setRecordedUrl(null);
+    audioChunksRef.current = [];
+    
+    // 1. Initialize MediaRecorder
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        const url = URL.createObjectURL(audioBlob);
+        setRecordedUrl(url);
+        // Stop all track nodes
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      recorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.warn('Microphone access denied or not supported:', err);
+    }
+
+    // 2. Initialize Speech Recognition
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'sw-KE'; // Swahili recognition is highly accurate for these words!
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        // Clean up punctuation/spaces
+        const cleaned = transcript.replace(/[^a-zA-Z]/g, '').toUpperCase();
+        setInput(cleaned);
+        setFeedback(`I heard you say: "${transcript}"`);
+      };
+
+      recognition.onerror = (e: any) => {
+        console.warn('Speech recognition error:', e.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        // Stop recording audio as well
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+          mediaRecorderRef.current.stop();
+          setIsRecording(false);
+        }
+      };
+
+      recognition.start();
+    } else {
+      setFeedback('Speech recognition not supported in this browser, but recording audio is active!');
+      // Just record for 3 seconds if speech recognition is not supported
+      setTimeout(() => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+          mediaRecorderRef.current.stop();
+          setIsRecording(false);
+        }
+      }, 3500);
+    }
+  };
+
+  const stopVoiceCapture = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+    setIsListening(false);
+  };
+
+  const playRecordedAudio = () => {
+    if (recordedUrl) {
+      const audio = new Audio(recordedUrl);
+      audio.play();
+    }
+  };
 
   const check = () => {
-    if (input.toUpperCase() === words[index].word) {
+    const target = words[index].word;
+    const answer = input.toUpperCase().trim().replace(/\s+/g, '');
+    
+    if (answer === target) {
       setScore(s => s + 10);
       setRevealed(true);
-      setTimeout(() => { setIndex(i => (i + 1) % words.length); setInput(''); setRevealed(false); }, 1500);
+      setFeedback('🎉 Correct!');
+      speakRoboticComment(`Excellent job! You spelled ${words[index].kiswahili} perfectly!`);
+      setTimeout(() => {
+        setIndex(i => (i + 1) % words.length);
+        setInput('');
+        setRevealed(false);
+        setFeedback(null);
+        setRecordedUrl(null);
+      }, 2000);
+    } else {
+      setFeedback(`❌ Keep trying! The correct spelling has ${target.length} letters.`);
+      // Spell it letter by letter
+      const spellingSpaced = target.split('').join(' ');
+      speakRoboticComment(`Close! But the correct spelling of ${words[index].kiswahili} is ${spellingSpaced}. Try typing or saying it again!`);
     }
   };
 
   return (
-    <div style={{ textAlign: 'center' }}>
-      <span className="badge badge-primary" style={{ marginBottom: '1rem' }}>Score: {score}</span>
-      <div style={{ background: 'var(--bg-glass)', borderRadius: 'var(--radius-lg)', padding: '1.5rem', margin: '1rem 0', border: '1px solid var(--border-subtle)' }}>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Spell this word:</p>
-        <p style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>&quot;{words[index].meaning}&quot;</p>
-        <p style={{ fontSize: '0.9rem', color: 'var(--color-primary-light)' }}>Kiswahili: {words[index].kiswahili}</p>
+    <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span className="badge badge-primary">Spelling Bee Score: {score}</span>
+        <button onClick={playTargetWord} className="btn btn-secondary btn-sm" style={{ padding: '4px 10px', fontSize: '0.75rem', gap: '4px' }}>
+          🔊 Say Word
+        </button>
       </div>
-      {revealed && <p style={{ color: '#10B981', fontFamily: 'var(--font-fun)' }}>✅ {words[index].word} — Correct!</p>}
+
+      <div style={{ background: 'var(--bg-glass)', borderRadius: 'var(--radius-lg)', padding: '1.5rem', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Meaning of the word:</p>
+        <h4 style={{ fontSize: '1.15rem', color: '#FFF', margin: '0.5rem 0', fontFamily: 'var(--font-fun)' }}>&quot;{words[index].meaning}&quot;</h4>
+        <p style={{ fontSize: '0.9rem', color: 'var(--color-primary-light)', fontWeight: 600 }}>Kiswahili Word: {words[index].kiswahili}</p>
+      </div>
+
+      {feedback && (
+        <p style={{
+          fontSize: '0.85rem',
+          fontFamily: 'var(--font-fun)',
+          color: feedback.includes('Correct') ? '#10B981' : feedback.includes('heard') ? 'var(--color-language-light)' : '#EF4444',
+          margin: '0.25rem 0'
+        }}>{feedback}</p>
+      )}
+
+      {/* Voice controls */}
+      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', margin: '0.5rem 0' }}>
+        {!isListening && !isRecording ? (
+          <button onClick={startVoiceCapture} className="btn btn-primary btn-sm" style={{ background: '#EC4899', color: '#FFF', gap: '6px' }}>
+            🎤 Speak & Spell
+          </button>
+        ) : (
+          <button onClick={stopVoiceCapture} className="btn btn-primary btn-sm" style={{ background: '#EF4444', color: '#FFF', gap: '6px', animation: 'pulseHighlight 1s infinite' }}>
+            🛑 Stop Listening
+          </button>
+        )}
+
+        {recordedUrl && (
+          <button onClick={playRecordedAudio} className="btn btn-secondary btn-sm" style={{ gap: '6px' }}>
+            🎧 Play My Voice
+          </button>
+        )}
+      </div>
+
+      {/* Spelling input */}
       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-        <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && check()} placeholder="Type..." style={{
-          padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-glass)', border: '1px solid var(--border-subtle)',
-          color: 'var(--text-primary)', fontSize: '1rem', outline: 'none', width: 160, textTransform: 'uppercase',
-        }} />
-        <button className="btn btn-primary btn-sm" onClick={check}>Check</button>
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && check()}
+          placeholder="Type or speak the spelling..."
+          style={{
+            padding: '0.75rem 1rem',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--bg-glass)',
+            border: '2px solid var(--color-primary)',
+            color: 'var(--text-primary)',
+            fontSize: '1.1rem',
+            outline: 'none',
+            flex: 1,
+            textTransform: 'uppercase',
+            textAlign: 'center',
+            letterSpacing: '0.1em',
+            fontFamily: 'var(--font-display)',
+            fontWeight: 800
+          }}
+        />
+        <button className="btn btn-primary btn-sm" onClick={check} style={{ fontSize: '1rem', padding: '0.75rem 1.25rem' }}>Check</button>
       </div>
+
+      <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+        💡 Tip: Click &quot;Speak &amp; Spell&quot; and say the word clearly, or spell it out letter-by-letter!
+      </p>
     </div>
   );
 }
@@ -626,6 +819,28 @@ const externalResources = [
 // ---------- Main Games Hub Page ----------
 export default function GamesPage() {
   const [activeGame, setActiveGame] = useState<string | null>(null);
+  const [isBrightTheme, setIsBrightTheme] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('robokid-theme');
+    if (saved === 'bright') {
+      setIsBrightTheme(true);
+      document.documentElement.classList.add('bright-theme');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    playClick();
+    if (isBrightTheme) {
+      localStorage.setItem('robokid-theme', 'dark');
+      document.documentElement.classList.remove('bright-theme');
+      setIsBrightTheme(false);
+    } else {
+      localStorage.setItem('robokid-theme', 'bright');
+      document.documentElement.classList.add('bright-theme');
+      setIsBrightTheme(true);
+    }
+  };
 
   const games = [
     { id: 'memory', name: 'Memory Match', icon: '🃏', desc: 'Match Kiswahili animal names with their emojis', color: '#8B5CF6', subject: 'Languages', component: <MemoryMatchGame /> },
@@ -655,6 +870,22 @@ export default function GamesPage() {
             <li><a href="/dashboard" className="navbar-link">Dashboard</a></li>
             <li><a href="/playbook" className="navbar-link">Playbook</a></li>
             <li><span className="badge badge-warning">🎮 Games</span></li>
+            <li>
+              <button 
+                onClick={toggleTheme} 
+                className="btn btn-secondary btn-sm" 
+                style={{
+                  background: isBrightTheme ? 'rgba(251, 191, 36, 0.2)' : 'var(--bg-glass)',
+                  borderColor: isBrightTheme ? '#FBBF24' : 'var(--border-subtle)',
+                  color: isBrightTheme ? '#D97706' : 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem'
+                }}
+              >
+                {isBrightTheme ? '🎒 Bright Mode' : '🌌 Dark Mode'}
+              </button>
+            </li>
           </ul>
         </div>
       </nav>

@@ -1043,3 +1043,69 @@ h1, h2, h3, h4, h5, h6 {
 
 .relative { position: relative; }
 .z-10 { z-index: 10; }
+
+/* ---- Bright Kids Mode Theme Overrides ---- */
+.bright-theme {
+  --bg-primary: #FFFbeb; /* Sunny amber-50 background */
+  --bg-secondary: #FEF3C7; /* Amber-100 */
+  --bg-card: rgba(255, 255, 255, 0.9); /* Solid white card base */
+  --bg-card-hover: rgba(255, 255, 255, 0.98);
+  --bg-glass: rgba(99, 102, 241, 0.04);
+  --bg-glass-strong: rgba(99, 102, 241, 0.08);
+  
+  --text-primary: #1E293B; /* High legibility dark slate */
+  --text-secondary: #334155; /* Slate-700 */
+  --text-muted: #64748B; /* Slate-500 */
+  --text-accent: #4F46E5; /* Indigo-600 */
+  
+  --border-subtle: rgba(99, 102, 241, 0.15);
+  --border-glow: rgba(99, 102, 241, 0.4);
+  
+  --gradient-hero: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 30%, #FDE68A 60%, #FFFBEB 100%);
+  --gradient-robot: linear-gradient(135deg, #FF6B6B, #FF8E53, #FF4B91);
+  --gradient-cta: linear-gradient(135deg, #FF5E62 0%, #FF9966 100%);
+  
+  --shadow-sm: 0 4px 10px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.09);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 25px rgba(255, 94, 98, 0.15);
+  --shadow-glow-strong: 0 0 50px rgba(255, 94, 98, 0.25);
+}
+
+/* Playful child-friendly elements when bright theme is active */
+.bright-theme body,
+.bright-theme p,
+.bright-theme button,
+.bright-theme input,
+.bright-theme span,
+.bright-theme h1,
+.bright-theme h2,
+.bright-theme h3,
+.bright-theme h4,
+.bright-theme h5,
+.bright-theme h6 {
+  font-family: var(--font-fun) !important;
+}
+
+/* Larger font size to favor kids */
+.bright-theme body {
+  font-size: 1.15rem;
+}
+
+.bright-theme .glass-card {
+  box-shadow: var(--shadow-md);
+  border-width: 2px;
+}
+
+.bright-theme .navbar {
+  background: rgba(255, 251, 235, 0.95);
+  border-bottom: 2px solid rgba(99, 102, 241, 0.15);
+}
+
+.bright-theme .navbar-link {
+  color: #334155;
+}
+
+.bright-theme .navbar-link:hover {
+  color: #000;
+}

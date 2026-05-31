@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAllContent } from '@/lib/content-agent';
+import { examQuestions } from '@/lib/exam-bank';
 
 /**
  * Smart Content Generator API
@@ -30,6 +32,113 @@ async function generateWithGemini(prompt: string): Promise<string> {
 
   const data = await res.json();
   return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+async function generateWithHuggingFace(prompt: string): Promise<string> {
+  const model = "Qwen/Qwen2.5-1.5B-Instruct";
+  const hfToken = process.env.HF_TOKEN || "";
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (hfToken) {
+    headers["Authorization"] = `Bearer ${hfToken}`;
+  }
+
+  const res = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      inputs: `<|im_start|>system\nYou are RoboKid AI, an educational companion for kids. Generate direct answers.<|im_end|>\n<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`,
+      parameters: {
+        max_new_tokens: 1000,
+        temperature: 0.7,
+        return_full_text: false,
+      }
+    }),
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!res.ok) {
+    throw new Error(`HuggingFace error: ${res.status} ${res.statusText}`);
+  }
+
+  const data = await res.json();
+  let generatedText = "";
+  if (Array.isArray(data)) {
+    generatedText = data[0]?.generated_text || "";
+  } else if (data?.generated_text) {
+    generatedText = data.generated_text;
+  } else if (typeof data === "string") {
+    generatedText = data;
+  }
+
+  return generatedText.replace(/<\|im_end\|>/g, '').replace(/<\|im_start\|>/g, '').trim();
+}
+
+function generateOfflineFallback(type: string, grade: number, subject: string, language: string, topic: string): string {
+  const isSwahili = language === 'kiswahili';
+  
+  switch (type) {
+    case 'story': {
+      const stories = getAllContent().filter(c => c.type === 'story' && c.language === language);
+      const selected = stories[Math.floor(Math.random() * stories.length)] || getAllContent().find(c => c.type === 'story');
+      return selected ? `TITLE: ${selected.title}\n\n${selected.content}` : "No offline story available.";
+    }
+    
+    case 'puzzle': {
+      const questions = examQuestions.filter(q => q.grade === (grade || 1) && q.subject === (subject || 'mathematics'));
+      const selected = questions[Math.floor(Math.random() * questions.length)] || examQuestions[0];
+      return `PUZZLE: ${selected.question}\nHINT: Try drawing it out.\nANSWER: ${selected.correctAnswer}\nEXPLANATION: ${selected.explanation || "That's the correct answer!"}`;
+    }
+    
+    case 'vocabulary': {
+      const vocabs = getAllContent().filter(c => c.type === 'vocabulary');
+      const selected = vocabs[Math.floor(Math.random() * vocabs.length)];
+      return selected ? selected.content : `🇬🇧 Banana | 🇰🇪 Ndizi | 🏔️ Marigu | 🐟 Rabolo | 🌊 Muus\n🇬🇧 Mango | 🇰🇪 Embe | 🏔️ Iembe | 🐟 Manga | 🌊 Cambe`;
+    }
+    
+    case 'riddle': {
+      const riddles = getAllContent().filter(c => c.type === 'riddle' && c.language === language);
+      if (riddles.length > 0) {
+        return riddles.map(r => r.content).join('\n\n');
+      }
+      return isSwahili 
+        ? "RIDDLE: Nina miguu minne lakini sitembei. Mimi ni nini?\nANSWER: Kiti\n\nRIDDLE: Nina macho lakini sioni. Mimi ni nini?\nANSWER: Nazi"
+        : "RIDDLE: I have a tail and a head, but no body. What am I?\nANSWER: A coin\n\nRIDDLE: I have teeth but cannot bite. What am I?\nANSWER: A comb";
+    }
+    
+    case 'funfact': {
+      const facts = getAllContent().filter(c => c.type === 'fun_fact' && c.language === language);
+      if (facts.length > 0) {
+        return facts.map((f, i) => `${i+1}. ${f.content}`).join('\n\n');
+      }
+      return isSwahili
+        ? "1. Twiga ndiye mnyama mrefu zaidi duniani.\n2. Kenya ina milima miwili yenye theluji."
+        : "1. 🐘 Elephants have the largest brain of any land animal.\n2. 🏔️ Mount Kenya has snow on its peaks even though it is on the equator.";
+    }
+    
+    case 'poem': {
+      const poems = getAllContent().filter(c => c.type === 'poem' && c.language === language);
+      const selected = poems[Math.floor(Math.random() * poems.length)];
+      return selected ? `${selected.title}\n\n${selected.content}` : "My Beautiful Kenya\nFrom the mountains high to the ocean blue,\nKenya, my homeland, I love you true.";
+    }
+    
+    case 'exercise': {
+      const questions = examQuestions.filter(q => q.grade === (grade || 1) && q.subject === (subject || 'mathematics'));
+      if (questions.length > 0) {
+        return questions.slice(0, 3).map((q, i) => {
+          const opts = q.options ? q.options.join('\n') : '';
+          return `${i+1}. ${q.question}\n${opts}\nAnswer: ${q.correctAnswer}\n`;
+        }).join('\n');
+      }
+      return "1. 3 + 2 = ?\nA) 4\nB) 5\nC) 6\nD) 7\nAnswer: B";
+    }
+    
+    case 'translation': {
+      return `🇬🇧 English: Hello\n🇰🇪 Kiswahili: Habari\n🏔️ Gĩkũyũ: Wĩ mwega\n🐟 Dholuo: Misawa\n🌊 Somali: Salaan`;
+    }
+    
+    default:
+      return "Keep learning and smiling, RoboKid!";
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -149,7 +258,22 @@ Be culturally accurate — use natural phrasing that a native speaker would use.
         prompt = `Generate an educational activity for a Grade ${grade || 1} Kenyan child about ${topic || subject || 'learning'} in ${lang}. Make it fun, interactive, and culturally relevant to Kenya.`;
     }
 
-    const content = await generateWithGemini(prompt);
+    let content = '';
+    let apiSource = 'gemini-2.0-flash';
+
+    try {
+      content = await generateWithGemini(prompt);
+    } catch (error) {
+      console.warn('Gemini generate route error, trying HuggingFace fallback:', error);
+      try {
+        content = await generateWithHuggingFace(prompt);
+        apiSource = 'huggingface-qwen';
+      } catch (hfError) {
+        console.error('HuggingFace generate route error, using Offline fallback:', hfError);
+        content = generateOfflineFallback(type, grade, subject, language, topic);
+        apiSource = 'offline-fallback';
+      }
+    }
 
     return NextResponse.json({
       content,
@@ -159,7 +283,7 @@ Be culturally accurate — use natural phrasing that a native speaker would use.
       language,
       topic,
       generatedAt: new Date().toISOString(),
-      source: 'gemini-2.0-flash',
+      source: apiSource,
     });
   } catch (error) {
     return NextResponse.json(

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { playClick } from '@/lib/sound-manager';
 
 /* ============================================================
    RoboKid — Landing Page
@@ -334,10 +335,29 @@ function SubjectCard({ icon, name, color, description, topics, delay }: {
 // ---------- Main Landing Page ----------
 export default function HomePage() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isBrightTheme, setIsBrightTheme] = useState(false);
   
   useEffect(() => {
     setIsLoaded(true);
+    const saved = localStorage.getItem('robokid-theme');
+    if (saved === 'bright') {
+      setIsBrightTheme(true);
+      document.documentElement.classList.add('bright-theme');
+    }
   }, []);
+
+  const toggleTheme = () => {
+    playClick();
+    if (isBrightTheme) {
+      localStorage.setItem('robokid-theme', 'dark');
+      document.documentElement.classList.remove('bright-theme');
+      setIsBrightTheme(false);
+    } else {
+      localStorage.setItem('robokid-theme', 'bright');
+      document.documentElement.classList.add('bright-theme');
+      setIsBrightTheme(true);
+    }
+  };
   
   const subjects = [
     {
@@ -387,6 +407,23 @@ export default function HomePage() {
             <li><a href="/games" className="navbar-link">🎮 Games</a></li>
             <li><a href="/encyclopedia" className="navbar-link">📖 Encyclopedia</a></li>
             <li><a href="/playbook" className="navbar-link">Playbook</a></li>
+            <li>
+              <button 
+                onClick={toggleTheme} 
+                className="btn btn-secondary btn-sm" 
+                style={{
+                  background: isBrightTheme ? 'rgba(251, 191, 36, 0.2)' : 'var(--bg-glass)',
+                  borderColor: isBrightTheme ? '#FBBF24' : 'var(--border-subtle)',
+                  color: isBrightTheme ? '#D97706' : 'var(--text-primary)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  cursor: 'pointer'
+                }}
+              >
+                {isBrightTheme ? '🎒 Bright Mode' : '🌌 Dark Mode'}
+              </button>
+            </li>
             <li><a href="/select-grade" className="btn btn-primary btn-sm" id="cta-navbar">Start Learning</a></li>
           </ul>
         </div>

@@ -1,10 +1,18 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { playClick, playSuccess } from '@/lib/sound-manager';
 
 export default function SelectGradePage() {
   const router = useRouter();
+
+  useEffect(() => {
+    const saved = localStorage.getItem('robokid-theme');
+    if (saved === 'bright') {
+      document.documentElement.classList.add('bright-theme');
+    }
+  }, []);
 
   const handleSelect = (stage: string, defaultGrade: number) => {
     playSuccess();

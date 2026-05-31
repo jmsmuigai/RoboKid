@@ -244,3 +244,46 @@ export function stopBackingBeat() {
 export function isBeatPlaying(): boolean {
   return isBeatRunning;
 }
+
+/** Synthesize a toy piano / bell-like note using Web Audio oscillators */
+export function playPianoNote(frequency: number, duration = 0.6) {
+  try {
+    const ctx = getAudioContext();
+    const time = ctx.currentTime;
+    
+    // Multiple oscillators for a richer toy piano / bell timbre
+    const oscFund = ctx.createOscillator(); // Sine fundamental
+    const oscHarm1 = ctx.createOscillator(); // Triangle 2nd harmonic
+    const oscHarm2 = ctx.createOscillator(); // Sine 3rd harmonic
+    
+    const gainNode = ctx.createGain();
+    
+    oscFund.connect(gainNode);
+    oscHarm1.connect(gainNode);
+    oscHarm2.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    oscFund.type = 'sine';
+    oscHarm1.type = 'triangle';
+    oscHarm2.type = 'sine';
+    
+    oscFund.frequency.setValueAtTime(frequency, time);
+    oscHarm1.frequency.setValueAtTime(frequency * 2, time);
+    oscHarm2.frequency.setValueAtTime(frequency * 3, time);
+    
+    // Envelope (ADSR)
+    gainNode.gain.setValueAtTime(0.001, time);
+    gainNode.gain.linearRampToValueAtTime(0.18, time + 0.02); // Fast attack
+    gainNode.gain.exponentialRampToValueAtTime(0.001, time + duration); // Natural decay
+    
+    oscFund.start(time);
+    oscHarm1.start(time);
+    oscHarm2.start(time);
+    
+    oscFund.stop(time + duration + 0.1);
+    oscHarm1.stop(time + duration + 0.1);
+    oscHarm2.stop(time + duration + 0.1);
+  } catch (e) {
+    console.warn('Piano synthesis failed:', e);
+  }
+}

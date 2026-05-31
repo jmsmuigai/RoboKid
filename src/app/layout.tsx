@@ -21,6 +21,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            try {
+              var saved = localStorage.getItem('robokid-theme');
+              if (saved === 'bright') {
+                document.documentElement.classList.add('bright-theme');
+              } else {
+                document.documentElement.classList.remove('bright-theme');
+              }
+            } catch (e) {}
+          })();
+        ` }} />
+      </head>
       <body>
         {children}
       </body>
