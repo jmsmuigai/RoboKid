@@ -779,6 +779,11 @@ export default function HomePage() {
             </span>
           </p>
           <p>Aligned with KICD &amp; KNEC Standards</p>
+          <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+            <a href="http://localhost:3000" className="localhost-button">
+              🚀 Open Localhost Server (http://localhost:3000)
+            </a>
+          </div>
         </div>
       </footer>
     </main>

@@ -15,6 +15,8 @@ import BlackboardNote from '@/components/BlackboardNote';
 import Terminal from '@/components/Terminal';
 import MotherTongueCard from '@/components/MotherTongueCard';
 import Piano from '@/components/Piano';
+import HandwritingPractice from '@/components/HandwritingPractice';
+import { translateUI } from '@/lib/ui-translations';
 import { getEarnedToys, TOYS_LIST, awardToy, resetToys } from '@/lib/toys-service';
 import type { Toy } from '@/lib/toys-service';
 
@@ -47,6 +49,9 @@ function DashboardSubjectCard({ subject, grade, language, onSelect }: {
   const topics = getTopicsByGradeAndSubject(grade, subject);
   const questions = getQuestionsByGradeAndSubject(grade, subject);
   
+  const translatedName = translateUI(subject, language);
+  const translatedDesc = translateUI(`${subject}_desc`, language);
+  
   const handleSelect = () => {
     playClick();
     onSelect(subject);
@@ -61,11 +66,11 @@ function DashboardSubjectCard({ subject, grade, language, onSelect }: {
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
         <div style={{ width: 52, height: 52, borderRadius: 14, background: `${info.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.75rem' }}>{info.icon}</div>
         <div>
-          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', marginBottom: 2 }}>{info.name}</h3>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', marginBottom: 2 }}>{translatedName}</h3>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{topics.length} topics · {questions.length} questions</span>
         </div>
       </div>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '0.75rem' }}>{info.description}</p>
+      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '0.75rem' }}>{translatedDesc}</p>
       <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
         {topics.slice(0, 3).map(t => (
           <span key={t.id} style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: 20, background: `${info.color}12`, color: info.color, border: `1px solid ${info.color}25` }}>{t.title.split('—')[0].split('(')[0].trim()}</span>
@@ -771,6 +776,315 @@ function ToysAndCartoonsTab() {
   );
 }
 
+// ---------- Smart Phonetic TTS Engine ----------
+function speakLocalizedText(text: string, language: Language) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  
+  let adjustedText = text;
+  let voiceLang = 'en-US';
+  
+  if (language === 'kiswahili') {
+    voiceLang = 'sw-KE';
+  } else if (language === 'kikuyu') {
+    adjustedText = text
+      .replace(/ĩ/g, 'e')
+      .replace(/ũ/g, 'o')
+      .replace(/g/g, 'gh')
+      .replace(/th/g, 'dh');
+    voiceLang = 'it-IT'; // Italian or Spanish voice pronounces Kikuyu vowels beautifully!
+  } else if (language === 'luo') {
+    adjustedText = text.replace(/ny/g, 'ni').replace(/dh/g, 'th');
+    voiceLang = 'es-ES'; // Spanish voice handles Luo vowel patterns well
+  } else if (language === 'somali') {
+    adjustedText = text.replace(/c/g, 'ah').replace(/x/g, 'h');
+    voiceLang = 'ar-SA'; // Arabic-themed phonetics
+  }
+
+  const utterance = new SpeechSynthesisUtterance(adjustedText);
+  const voices = window.speechSynthesis.getVoices();
+  let selectedVoice = voices.find(v => v.lang.toLowerCase().startsWith(voiceLang.split('-')[0].toLowerCase()));
+  
+  if (!selectedVoice && language === 'kiswahili') {
+    selectedVoice = voices.find(v => v.lang.startsWith('sw') || v.lang.startsWith('en'));
+  }
+  
+  if (selectedVoice) {
+    utterance.voice = selectedVoice;
+  }
+  
+  utterance.pitch = 1.25;
+  utterance.rate = 0.85; // Slow down for children to learn correct syllables
+  
+  window.speechSynthesis.speak(utterance);
+}
+
+// ---------- Dashboard Lugha & Tracing Section ----------
+function LughaSection({ language }: { language: Language }) {
+  const [subTab, setSubTab] = useState<'cards' | 'tracing' | 'dictionary'>('cards');
+  const [newWord, setNewWord] = useState('');
+  const [wordBank, setWordBank] = useState<{ english: string; kiswahili: string; kikuyu: string; luo: string; somali: string }[]>([]);
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('robokid_word_bank');
+    if (stored) {
+      setWordBank(JSON.parse(stored));
+    }
+  }, []);
+
+  const handleTranslateNewWord = async () => {
+    if (!newWord.trim()) return;
+    playClick();
+    setIsTranslating(true);
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'translation',
+          topic: newWord.trim(),
+          language: 'english'
+        })
+      });
+      const data = await response.json();
+      if (data && data.content) {
+        const lines = data.content.split('\n');
+        const getVal = (prefix: string) => {
+          const found = lines.find((l: string) => l.includes(prefix));
+          return found ? found.split(':')[1]?.trim() : '';
+        };
+        const parsed = {
+          english: getVal('English') || newWord,
+          kiswahili: getVal('Kiswahili') || '',
+          kikuyu: getVal('Gĩkũyũ') || getVal('Kikuyu') || '',
+          luo: getVal('Dholuo') || getVal('Luo') || '',
+          somali: getVal('Somali') || ''
+        };
+
+        const updated = [parsed, ...wordBank];
+        setWordBank(updated);
+        localStorage.setItem('robokid_word_bank', JSON.stringify(updated));
+        setNewWord('');
+        playSuccess();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  const handleClearWordBank = () => {
+    const confirmMsg = language === 'kiswahili' ? 'Je, ungependa kufuta kamusi yako ya maneno?' :
+                       language === 'kikuyu' ? 'Nĩũgũthambia ibuku rĩaku rĩa ciugo?' :
+                       language === 'luo' ? 'I dwaro rucho buk mari mar weche?' :
+                       language === 'somali' ? 'Ma rabtaa inaad nadiifiso qaamuuskaaga?' :
+                       'Clear your personal dictionary?';
+
+    if (confirm(confirmMsg)) {
+      playClick();
+      localStorage.removeItem('robokid_word_bank');
+      setWordBank([]);
+    }
+  };
+
+  const subTabLabels = {
+    cards: {
+      english: '🗣️ Flashcards',
+      kiswahili: '🗣️ Kadi za Msamiati',
+      kikuyu: '🗣️ Kadi cia Ciugo',
+      luo: '🗣️ Kadi mar Weche',
+      somali: '🗣️ Kaararka Erayada'
+    },
+    tracing: {
+      english: '✍️ Tracing Lab',
+      kiswahili: '✍️ Karakana ya Kuandika',
+      kikuyu: '✍️ Wĩra wa Kwandĩka',
+      luo: '✍️ Kar Ndiko',
+      somali: '✍️ Waaxda Qorista'
+    },
+    dictionary: {
+      english: '📖 My Word Bank',
+      kiswahili: '📖 Benki ya Maneno',
+      kikuyu: '📖 Akiba ya Ciugo',
+      luo: '📖 Buk mar Weche',
+      somali: '📖 Kaydkayga Erayada'
+    }
+  };
+
+  const dictLabels = {
+    title: {
+      english: 'MY DICTIONARY',
+      kiswahili: 'KAMUSI YANGU',
+      kikuyu: 'IBUKU RĨAKWA RĨA CIUGO',
+      luo: 'BUK MARA MAR WECHE',
+      somali: 'QAAMUUSKAYGA'
+    },
+    learned: {
+      english: 'words learned',
+      kiswahili: 'maneno yaliyojifunza',
+      kikuyu: 'ciugo cia kũmenya',
+      luo: 'weche ma apuonjra',
+      somali: 'erayada la bartay'
+    },
+    clear: {
+      english: 'Clear Dictionary',
+      kiswahili: 'Futa Kamusi',
+      kikuyu: 'Thambia Ibuku',
+      luo: 'Ruch Buk',
+      somali: 'Nadiifi Qaamuuska'
+    },
+    emptyTitle: {
+      english: 'Your personal word bank is empty!',
+      kiswahili: 'Benki yako ya maneno ni tupu!',
+      kikuyu: 'Akiba yaku ya ciugo nĩ mũthuuri!',
+      luo: 'Buk mari mar weche onge gimoro!',
+      somali: 'Kaydkaaga erayadu waa maran yahay!'
+    },
+    emptyDesc: {
+      english: 'Type an English word above to start compiling your mother tongue dictionary.',
+      kiswahili: 'Andika neno la Kiingereza hapo juu ili kuanza kukusanya kamusi ya lugha yako ya mama.',
+      kikuyu: 'Andĩka kiugo kĩa Gĩthungũ igũrũ nĩguo wambĩrĩrie gũkũria ibuku rĩaku rĩa kĩmũriũ.',
+      luo: 'Ket wach mar Dho-Rachar malo ka to ichak loso buk mari mar dhoru.',
+      somali: 'Qor eray Ingiriisi ah xagga sare si aad u bilowdo dhisidda qaamuuskaaga afka hooyo.'
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      
+      {/* Sub tabs */}
+      <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1rem', flexWrap: 'wrap' }}>
+        {(['cards', 'tracing', 'dictionary'] as const).map(tabKey => (
+          <button 
+            key={tabKey}
+            onClick={() => { playClick(); setSubTab(tabKey); }}
+            style={{
+              background: 'none', border: 'none', fontSize: '1.1rem', fontWeight: 700, cursor: 'pointer',
+              color: subTab === tabKey ? 'var(--color-primary-light)' : 'var(--text-secondary)',
+              borderBottom: subTab === tabKey ? '3px solid var(--color-primary)' : 'none',
+              paddingBottom: '0.5rem', fontFamily: 'var(--font-fun)',
+            }}
+          >
+            {subTabLabels[tabKey][language]}
+          </button>
+        ))}
+      </div>
+
+      {subTab === 'cards' && <MotherTongueCard />}
+      {subTab === 'tracing' && <HandwritingPractice language={language} />}
+      {subTab === 'dictionary' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          
+          <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <h3 style={{ fontFamily: 'var(--font-fun)', fontSize: '1.2rem', color: '#FFF', margin: 0 }}>
+              {translateUI('personal_dictionary_title', language)}
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0 }}>
+              {translateUI('personal_dictionary_desc', language)}
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem', width: '100%', flexWrap: 'wrap' }}>
+              <input
+                type="text"
+                value={newWord}
+                onChange={e => setNewWord(e.target.value)}
+                placeholder={translateUI('personal_dictionary_placeholder', language)}
+                disabled={isTranslating}
+                style={{
+                  flex: 1,
+                  minWidth: '200px',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '12px',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid var(--border-subtle)',
+                  color: '#FFF',
+                  fontFamily: 'var(--font-body)',
+                  outline: 'none',
+                  fontSize: '0.95rem'
+                }}
+              />
+              <button
+                onClick={handleTranslateNewWord}
+                disabled={isTranslating}
+                className="btn btn-primary"
+                style={{ padding: '0.75rem 1.5rem', whiteSpace: 'nowrap' }}
+              >
+                {isTranslating ? (language === 'kiswahili' ? '🔍 Inatafsiri...' : '🔍 Mining...') : translateUI('personal_dictionary_btn', language)}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <h4 style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0, fontWeight: 700 }}>
+                {dictLabels.title[language]} ({wordBank.length} {dictLabels.learned[language]})
+              </h4>
+              {wordBank.length > 0 && (
+                <button 
+                  onClick={handleClearWordBank} 
+                  className="btn btn-secondary btn-sm"
+                  style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#F87171', borderColor: 'rgba(239, 68, 68, 0.2)' }}
+                >
+                  {dictLabels.clear[language]}
+                </button>
+              )}
+            </div>
+
+            {wordBank.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem 1.5rem', background: 'var(--bg-glass)', borderRadius: '16px', border: '1px dashed var(--border-subtle)' }}>
+                <span style={{ fontSize: '3rem' }}>📖</span>
+                <h4 style={{ fontFamily: 'var(--font-fun)', color: 'var(--text-secondary)', margin: '0.5rem 0' }}>{dictLabels.emptyTitle[language]}</h4>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: 0 }}>{dictLabels.emptyDesc[language]}</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}>
+                {wordBank.map((item, idx) => (
+                  <div key={idx} className="glass-card" style={{ padding: '1.25rem', border: '1px solid var(--border-subtle)', borderRadius: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
+                      <h4 style={{ color: 'var(--color-primary-light)', margin: 0, fontSize: '1.05rem', textTransform: 'capitalize' }}>
+                        🇬🇧 {item.english}
+                      </h4>
+                      <button 
+                        onClick={() => {
+                          playClick();
+                          const activeTrans = language === 'kiswahili' ? item.kiswahili : language === 'kikuyu' ? item.kikuyu : language === 'luo' ? item.luo : language === 'somali' ? item.somali : item.english;
+                          speakLocalizedText(activeTrans, language);
+                        }}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.9rem' }}
+                      >
+                        🔊
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.85rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Kiswahili:</span>
+                        <strong style={{ color: '#FFF' }}>{item.kiswahili || '-'}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Gĩkũyũ:</span>
+                        <strong style={{ color: '#FFF' }}>{item.kikuyu || '-'}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Dholuo:</span>
+                        <strong style={{ color: '#FFF' }}>{item.luo || '-'}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Somali:</span>
+                        <strong style={{ color: '#FFF' }}>{item.somali || '-'}</strong>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------- Textbook Lesson Notes & Exams ----------
 interface LessonNote {
   id: string;
@@ -1212,15 +1526,65 @@ export default function DashboardPage() {
       </nav>
 
       <div className="container" style={{ paddingBottom: '4rem' }}>
+        {/* Flashy Marquee */}
+        <div className="marquee-wrapper" style={{
+          background: 'linear-gradient(90deg, rgba(99,102,241,0.1) 0%, rgba(236,72,153,0.1) 50%, rgba(99,102,241,0.1) 100%)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '16px',
+          padding: '0.6rem 1rem',
+          marginBottom: '2rem',
+          overflow: 'hidden',
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          boxShadow: '0 0 15px rgba(99, 102, 241, 0.05)'
+        }}>
+          <div style={{
+            background: 'var(--gradient-robot)',
+            color: 'white',
+            padding: '0.2rem 0.6rem',
+            borderRadius: '8px',
+            fontSize: '0.75rem',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            marginRight: '1rem',
+            whiteSpace: 'nowrap',
+            boxShadow: '0 0 10px rgba(236,72,153,0.3)',
+            zIndex: 10
+          }}>
+            ⚡ NEWS
+          </div>
+          <div style={{
+            overflow: 'hidden',
+            width: '100%',
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center'
+          }}>
+            <div style={{
+              display: 'inline-block',
+              whiteSpace: 'nowrap',
+              animation: 'marqueeContinuous 30s linear infinite',
+              paddingLeft: '100%',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              color: '#FFF',
+              textShadow: '0 0 8px rgba(255,255,255,0.2)'
+            }}>
+              {translateUI('marquee_welcome', selectedLanguage)}
+            </div>
+          </div>
+        </div>
+
         {/* Welcome Header */}
-        <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <MiniRobot mood="happy" size={56} />
           <div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 800 }}>
-              {selectedLanguage === 'kiswahili' ? 'Karibu' : selectedLanguage === 'kikuyu' ? 'Wĩ mwega' : selectedLanguage === 'luo' ? 'Ber biro' : selectedLanguage === 'somali' ? 'Soo dhawoow' : 'Welcome'}, RoboKid! 🎉
+              {translateUI('welcome_prefix', selectedLanguage)} RoboKid! 🎉
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-              Stage: <strong style={{ color: '#FB923C', textTransform: 'uppercase' }}>{stage === 'g1-3' ? 'Lower Primary' : stage === 'g4-6' ? 'Upper Primary' : 'Advanced AI & Robotics'}</strong> · Grade {selectedGrade} · {LANGUAGES.find(l => l.code === selectedLanguage)?.label}
+              {translateUI('current_stage_label', selectedLanguage)} <strong style={{ color: '#FB923C', textTransform: 'uppercase' }}>{translateUI('stage_' + stage, selectedLanguage)}</strong> · Grade {selectedGrade} · {LANGUAGES.find(l => l.code === selectedLanguage)?.label}
             </p>
           </div>
           
@@ -1229,7 +1593,7 @@ export default function DashboardPage() {
             className="btn btn-secondary btn-sm"
             style={{ marginLeft: 'auto', border: '1px dashed #6366f1', color: '#818cf8' }}
           >
-            🔄 Switch Stage
+            🔄 {translateUI('switch_stage', selectedLanguage)}
           </button>
         </div>
 
@@ -1270,7 +1634,7 @@ export default function DashboardPage() {
               border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)',
               transition: 'all var(--transition-fast)',
             }}>
-              {tab.label}
+              {translateUI('tab_' + (tab.key === 'videos' ? 'toys' : tab.key), selectedLanguage)}
             </button>
           ))}
         </div>
@@ -1403,11 +1767,36 @@ export default function DashboardPage() {
 
         {activeTab === 'videos' && <ToysAndCartoonsTab />}
 
-        {activeTab === 'lugha' && <MotherTongueCard />}
+        {activeTab === 'lugha' && <LughaSection language={selectedLanguage} />}
 
         {activeTab === 'music' && <Piano />}
 
         {activeTab === 'notes' && <TextbookNotesPanel stage={stage} selectedGrade={selectedGrade} />}
+        
+        {/* Flashy Localhost Button & Footer */}
+        <footer style={{
+          marginTop: '5rem',
+          paddingTop: '2rem',
+          borderTop: '1px solid var(--border-subtle)',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '1rem'
+        }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+            RoboKid AI CBC Learning Hub © 2026. Made with ❤️ in Kenya.
+          </p>
+          <a 
+            href="http://localhost:3000" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="localhost-button"
+            onClick={playSuccess}
+          >
+            🚀 Open Localhost Server (http://localhost:3000)
+          </a>
+        </footer>
       </div>
 
       {/* 🌟 TOY AWARD CELEBRATION MODAL 🌟 */}
