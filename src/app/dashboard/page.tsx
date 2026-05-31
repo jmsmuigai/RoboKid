@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { SUBJECTS, GRADES, LANGUAGES } from '@/lib/constants';
 import { getTopicsByGradeAndSubject } from '@/lib/curriculum-data';
 import { getQuestionsByGradeAndSubject } from '@/lib/exam-bank';
+import { loadModel, getModelStats } from '@/lib/learning-model';
 import type { Grade, Subject, Language, ExamQuestion } from '@/types';
 
 /* ============================================================
@@ -286,13 +287,141 @@ function CodingLab() {
   );
 }
 
+// ---------- Content Generator (fires on button click) ----------
+function ContentGenerator({ grade, language }: { grade: Grade; language: Language }) {
+  const [activeType, setActiveType] = useState<string>('story');
+  const [content, setContent] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [topic, setTopic] = useState('');
+
+  const types = [
+    { key: 'story', label: '📖 Story', desc: 'Kenyan stories with moral lessons' },
+    { key: 'puzzle', label: '🧩 Puzzle', desc: 'Math & logic puzzles' },
+    { key: 'vocabulary', label: '🔤 Vocabulary', desc: '5-language word lists' },
+    { key: 'riddle', label: '🤔 Riddles', desc: 'Kitendawili for fun' },
+    { key: 'funfact', label: '🌍 Fun Facts', desc: 'Amazing Kenya facts' },
+    { key: 'poem', label: '📜 Poem', desc: 'Rhymes & verses' },
+    { key: 'exercise', label: '📝 Exercise', desc: 'Practice questions' },
+    { key: 'translation', label: '🌐 Translate', desc: 'All 5 languages' },
+  ];
+
+  const generate = useCallback(async () => {
+    setLoading(true); setContent(null);
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: activeType, grade, language, topic: topic || undefined }),
+      });
+      const data = await res.json();
+      setContent(data.content || data.error || 'No content generated');
+    } catch { setContent('⚠️ Generation failed. Check your internet connection.'); }
+    finally { setLoading(false); }
+  }, [activeType, grade, language, topic]);
+
+  return (
+    <div>
+      {/* Type Selector */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.5rem', marginBottom: '1.5rem' }}>
+        {types.map(t => (
+          <button key={t.key} onClick={() => { setActiveType(t.key); setContent(null); }}
+            className="glass-card" style={{
+              padding: '0.75rem', cursor: 'pointer', textAlign: 'center',
+              border: activeType === t.key ? '2px solid var(--color-primary)' : '1px solid var(--border-subtle)',
+              background: activeType === t.key ? 'rgba(99,102,241,0.1)' : undefined,
+            }}>
+            <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{t.label.split(' ')[0]}</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>{t.label.split(' ').slice(1).join(' ')}</div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{t.desc}</div>
+          </button>
+        ))}
+      </div>
+
+      {/* Topic Input */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+        <input type="text" value={topic} onChange={e => setTopic(e.target.value)}
+          placeholder={activeType === 'translation' ? 'Text to translate...' : 'Optional topic (e.g., animals, water, family)...'}
+          onKeyDown={e => e.key === 'Enter' && generate()}
+          style={{
+            flex: 1, padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', background: 'var(--bg-glass)',
+            border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontSize: '0.9rem',
+            fontFamily: 'var(--font-body)', outline: 'none',
+          }} />
+        <button onClick={generate} className="btn btn-primary" disabled={loading}>
+          {loading ? '⏳' : '✨'} Generate
+        </button>
+      </div>
+
+      {/* Loading */}
+      {loading && (
+        <div className="glass-card" style={{ padding: '2rem', textAlign: 'center' }}>
+          <MiniRobot mood="thinking" size={64} />
+          <p style={{ color: 'var(--text-secondary)', marginTop: '1rem', fontFamily: 'var(--font-fun)' }}>RoboKid is creating magic... ✨</p>
+        </div>
+      )}
+
+      {/* Generated Content */}
+      {content && !loading && (
+        <div className="glass-card" style={{ padding: '1.5rem', border: '1px solid rgba(99,102,241,0.2)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <span className="badge badge-primary">✨ AI Generated</span>
+            <button onClick={generate} style={{ background: 'none', border: 'none', color: 'var(--color-primary-light)', cursor: 'pointer', fontSize: '0.8rem' }}>🔄 Regenerate</button>
+          </div>
+          <div style={{ whiteSpace: 'pre-wrap', fontSize: '0.95rem', lineHeight: 1.8, color: 'var(--text-secondary)' }}>
+            {content}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------- Image Gallery ----------
+function ImageGallery() {
+  const images = [
+    { src: '/robokid-hero-robot.png', label: '🤖 RoboKid Mascot' },
+    { src: '/african-robotics-club.png', label: '🔧 Robotics Club' },
+    { src: '/african-science-lab.png', label: '🔬 Science Lab' },
+    { src: '/african-reading-corner.png', label: '📖 Reading Corner' },
+    { src: '/african-wildlife-safari.png', label: '🦁 Wildlife Safari' },
+    { src: '/african-music-dance.png', label: '🥁 Music & Dance' },
+    { src: '/african-math.png', label: '🧮 Mathematics' },
+    { src: '/african-nature.png', label: '🌿 Nature Explorer' },
+    { src: '/african-language.png', label: '🗣️ Language Circle' },
+    { src: '/african-coding.png', label: '💻 Future Coders' },
+    { src: '/african-arts.png', label: '🎨 Creative Arts' },
+    { src: '/african-health.png', label: '🏥 Health & Hygiene' },
+    { src: '/african-encyclopedia.png', label: '📚 Encyclopedia' },
+    { src: '/robokid-mascot.png', label: '🤖 Robot Friend' },
+  ];
+
+  return (
+    <div>
+      <div className="section-header" style={{ marginBottom: '1.5rem', textAlign: 'left' }}>
+        <h2 style={{ fontSize: '1.5rem' }}>🎨 African Gallery — <span className="text-gradient">{images.length} Illustrations</span></h2>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>AI-generated educational art celebrating Kenyan culture and learning</p>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
+        {images.map((img, i) => (
+          <div key={i} className="glass-card" style={{ padding: '0.5rem', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s' }}
+            onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.03)')}
+            onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}>
+            <img src={img.src} alt={img.label} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '8px' }} />
+            <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem', fontWeight: 600 }}>{img.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ---------- Main Dashboard ----------
 export default function DashboardPage() {
   const [selectedGrade, setSelectedGrade] = useState<Grade>(1);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('english');
   const [activeSubject, setActiveSubject] = useState<Subject | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
-  const [activeTab, setActiveTab] = useState<'learn' | 'quiz' | 'code' | 'ai'>('learn');
+  const [activeTab, setActiveTab] = useState<'learn' | 'quiz' | 'code' | 'ai' | 'generate' | 'gallery'>('learn');
 
   const subjectList: Subject[] = ['mathematics', 'environmental', 'english', 'kiswahili', 'indigenous', 'creative'];
   const quizQuestions = activeSubject ? getQuestionsByGradeAndSubject(selectedGrade, activeSubject) : [];
@@ -353,14 +482,16 @@ export default function DashboardPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div style={{ display: 'flex', gap: '0.25rem', padding: '4px', background: 'var(--bg-glass)', borderRadius: 'var(--radius-full)', marginBottom: '2rem', border: '1px solid var(--border-subtle)', width: 'fit-content' }}>
+        <div style={{ display: 'flex', gap: '0.25rem', padding: '4px', background: 'var(--bg-glass)', borderRadius: 'var(--radius-full)', marginBottom: '2rem', border: '1px solid var(--border-subtle)', width: 'fit-content', flexWrap: 'wrap' }}>
           {[
-            { key: 'learn' as const, label: '📚 Learn', icon: '📚' },
-            { key: 'quiz' as const, label: '📝 Quiz', icon: '📝' },
-            { key: 'code' as const, label: '💻 Code', icon: '💻' },
-            { key: 'ai' as const, label: '🤖 AI', icon: '🤖' },
+            { key: 'learn' as const, label: '📚 Learn' },
+            { key: 'quiz' as const, label: '📝 Quiz' },
+            { key: 'code' as const, label: '💻 Code' },
+            { key: 'ai' as const, label: '🤖 AI' },
+            { key: 'generate' as const, label: '✨ Generate' },
+            { key: 'gallery' as const, label: '🎨 Gallery' },
           ].map(tab => (
-            <button key={tab.key} onClick={() => { setActiveTab(tab.key); setShowQuiz(false); setActiveSubject(null); }} style={{
+            <button key={tab.key} onClick={() => { setActiveTab(tab.key as any); setShowQuiz(false); setActiveSubject(null); }} style={{
               padding: '0.5rem 1.25rem', borderRadius: 'var(--radius-full)', fontSize: '0.9rem', fontWeight: 500,
               background: activeTab === tab.key ? 'var(--color-primary)' : 'transparent',
               color: activeTab === tab.key ? 'white' : 'var(--text-secondary)',
@@ -485,6 +616,18 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
+
+        {activeTab === 'generate' && (
+          <div>
+            <div className="section-header" style={{ marginBottom: '2rem', textAlign: 'left' }}>
+              <h2 style={{ fontSize: '1.5rem' }}>✨ Content Generator — <span className="text-gradient">Powered by Gemini AI</span></h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Click any content type below, enter an optional topic, and RoboKid auto-generates age-appropriate learning content in your chosen language!</p>
+            </div>
+            <ContentGenerator grade={selectedGrade} language={selectedLanguage} />
+          </div>
+        )}
+
+        {activeTab === 'gallery' && <ImageGallery />}
       </div>
     </main>
   );
