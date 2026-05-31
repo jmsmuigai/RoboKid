@@ -15,6 +15,8 @@ import BlackboardNote from '@/components/BlackboardNote';
 import Terminal from '@/components/Terminal';
 import MotherTongueCard from '@/components/MotherTongueCard';
 import Piano from '@/components/Piano';
+import { getEarnedToys, TOYS_LIST, awardToy, resetToys } from '@/lib/toys-service';
+import type { Toy } from '@/lib/toys-service';
 
 /* ============================================================
    RoboKid Dashboard — Interactive Learning Hub
@@ -87,8 +89,18 @@ function QuizPanel({ questions, onClose }: { questions: ExamQuestion[]; onClose:
   useEffect(() => {
     if (showResult) {
       playSuccess();
+      const pct = Math.round((score / questions.length) * 100);
+      if (pct >= 70) {
+        let toyId = 'toy_puppy';
+        if (pct === 100) {
+          toyId = 'toy_digger'; // Perfect score awards Excavator!
+        }
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('robokid-award-toy', { detail: { toyId } }));
+        }
+      }
     }
-  }, [showResult]);
+  }, [showResult, score, questions.length]);
 
   if (!q) return null;
 
@@ -522,49 +534,239 @@ function ImageGallery() {
   );
 }
 
-// ---------- Dashboard Videos Tab ----------
-function DashboardVideosTab() {
+// ---------- Dashboard Toys & Cartoons Tab ----------
+function ToysAndCartoonsTab() {
+  const [activeSection, setActiveSection] = useState<'shelf' | 'cartoons'>('shelf');
+  const [earnedList, setEarnedList] = useState<string[]>([]);
+  const [selectedToy, setSelectedToy] = useState<Toy | null>(null);
   const [selectedVid, setSelectedVid] = useState('n_J7wTfBvN0');
+
+  useEffect(() => {
+    setEarnedList(getEarnedToys());
+    const handleUpdate = () => {
+      setEarnedList(getEarnedToys());
+    };
+    window.addEventListener('robokid-award-toy', handleUpdate);
+    return () => window.removeEventListener('robokid-award-toy', handleUpdate);
+  }, []);
+
+  const speakToyDescription = (toy: Toy) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(`${toy.name}. ${toy.description}. Here is a fun fact: ${toy.funFact}`);
+      utterance.pitch = 1.35;
+      utterance.rate = 1.05;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const handleSelectToy = (toy: Toy) => {
+    playClick();
+    setSelectedToy(toy);
+    speakToyDescription(toy);
+  };
+
+  const handleReset = () => {
+    if (confirm("Are you sure you want to lock all your toys and start over?")) {
+      playClick();
+      resetToys();
+      setEarnedList([]);
+      setSelectedToy(null);
+    }
+  };
+
   const videos = [
     { id: 'n_J7wTfBvN0', title: 'Ubongo Kids — Learning Math and Coding Concepts!', creator: 'Ubongo Kids', duration: '12:45', thumbnail: '🦁' },
     { id: 'OqK5l4S0Wk8', title: 'Akili and Me — Counting Numbers & Fruit Matching!', creator: 'Akili and Me', duration: '8:30', thumbnail: '🍌' },
     { id: 'h4cQpP3YmZc', title: 'How do Robots Work? Simple Robotics Guide for Kids', creator: 'RoboKid Academy', duration: '10:15', thumbnail: '🤖' },
-    { id: 'E7B15-xR_d8', title: 'The Hare and the Tortoise (Kenyan Savanna Edition)', creator: 'African Folk Tales', duration: '14:20', thumbnail: '🐢' }
+    { id: '2mN0-1c39rY', title: 'Artificial Intelligence for Kids - What is AI?', creator: 'CrashCourse Kids', duration: '5:40', thumbnail: '🧠' },
+    { id: 'E7B15-xR_d8', title: 'The Hare and the Tortoise (Kenyan Savanna Edition)', creator: 'African Folk Tales', duration: '14:20', thumbnail: '🐢' },
+    { id: 'q3H0_wPZpOM', title: 'Awesome Lego Robotics & Projects for Young Minds', creator: 'Lego Education', duration: '9:15', thumbnail: '🚀' },
+    { id: 'R-DXZ7_9D1M', title: 'How Electronic Sensors Work in Modern Cars & Robots', creator: 'SciShow Kids', duration: '6:30', thumbnail: '📡' },
+    { id: 'X5p1v5w6y88', title: 'Easy Coding Tutorial: Building Game in Scratch!', creator: 'Scratch Coding', duration: '11:20', thumbnail: '💻' }
   ];
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-      <div style={{ gridColumn: 'span 2', minWidth: '320px' }}>
-        <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-subtle)', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
-          <iframe
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-            src={`https://www.youtube-nocookie.com/embed/${selectedVid}?autoplay=0&rel=0&showinfo=0`}
-            title="RoboKid Safe Player"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            sandbox="allow-scripts allow-same-origin allow-presentation"
-            allowFullScreen
-          />
-        </div>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', marginTop: '1rem', color: '#fff' }}>
-          {videos.find(v => v.id === selectedVid)?.title}
-        </h3>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      
+      {/* Sub navigation toggler */}
+      <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1rem' }}>
+        <button 
+          onClick={() => { playClick(); setActiveSection('shelf'); }}
+          style={{
+            background: 'none', border: 'none', fontSize: '1.1rem', fontWeight: 700, cursor: 'pointer',
+            color: activeSection === 'shelf' ? 'var(--color-primary-light)' : 'var(--text-secondary)',
+            borderBottom: activeSection === 'shelf' ? '3px solid var(--color-primary)' : 'none',
+            paddingBottom: '0.5rem', fontFamily: 'var(--font-fun)',
+          }}
+        >
+          🏆 My Toys Closet ({earnedList.length}/{TOYS_LIST.length})
+        </button>
+        <button 
+          onClick={() => { playClick(); setActiveSection('cartoons'); }}
+          style={{
+            background: 'none', border: 'none', fontSize: '1.1rem', fontWeight: 700, cursor: 'pointer',
+            color: activeSection === 'cartoons' ? 'var(--color-primary-light)' : 'var(--text-secondary)',
+            borderBottom: activeSection === 'cartoons' ? '3px solid var(--color-primary)' : 'none',
+            paddingBottom: '0.5rem', fontFamily: 'var(--font-fun)',
+          }}
+        >
+          🍿 Cartoon & AI Theater
+        </button>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <h4 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}>Up Next 📺</h4>
-        {videos.map(v => (
-          <div key={v.id} onClick={() => { playClick(); setSelectedVid(v.id); }} style={{
-            display: 'flex', gap: '0.75rem', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer',
-            background: selectedVid === v.id ? 'rgba(251, 146, 60, 0.1)' : 'var(--bg-glass)',
-            border: selectedVid === v.id ? '1px solid #FB923C' : '1px solid var(--border-subtle)'
-          }}>
-            <div style={{ width: '60px', height: '45px', background: '#1e293b', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>{v.thumbnail}</div>
-            <div>
-              <h5 style={{ fontSize: '0.8rem', color: '#fff', margin: 0, lineHeight: 1.3 }}>{v.title}</h5>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{v.creator}</span>
+
+      {activeSection === 'shelf' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0, maxWidth: '80%' }}>
+              Answer quiz questions correctly, finish coding challenges, or complete piano lessons to unlock cute virtual toys! Click on unlocked toys to hear about them!
+            </p>
+            {earnedList.length > 0 && (
+              <button 
+                onClick={handleReset}
+                className="btn btn-secondary btn-sm"
+                style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#F87171', borderColor: 'rgba(239, 68, 68, 0.2)' }}
+              >
+                Reset Toyshelf
+              </button>
+            )}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            {TOYS_LIST.map(toy => {
+              const earned = earnedList.includes(toy.id);
+              const isSelected = selectedToy?.id === toy.id;
+              
+              return (
+                <div
+                  key={toy.id}
+                  onClick={() => earned && handleSelectToy(toy)}
+                  style={{
+                    padding: '1.25rem 0.5rem',
+                    borderRadius: '16px',
+                    textAlign: 'center',
+                    cursor: earned ? 'pointer' : 'default',
+                    background: earned 
+                      ? (isSelected ? 'rgba(99, 102, 241, 0.2)' : 'var(--bg-glass-strong)') 
+                      : 'rgba(255, 255, 255, 0.02)',
+                    border: earned
+                      ? (isSelected ? `2px solid ${toy.color}` : '1px solid var(--border-subtle)')
+                      : '1px dashed rgba(255, 255, 255, 0.1)',
+                    transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                    transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    opacity: earned ? 1 : 0.6,
+                    boxShadow: earned && isSelected ? `0 0 15px ${toy.color}` : 'none'
+                  }}
+                  className={earned ? 'hover-bounce' : ''}
+                >
+                  <div style={{ 
+                    fontSize: '3rem', 
+                    marginBottom: '0.5rem', 
+                    filter: earned ? 'none' : 'grayscale(100%) brightness(30%)',
+                    transform: earned && isSelected ? 'rotate(10deg)' : 'none',
+                    transition: 'transform 0.2s'
+                  }}>
+                    {toy.emoji}
+                  </div>
+                  <h4 style={{ fontSize: '0.85rem', color: earned ? '#FFF' : 'var(--text-muted)', margin: 0, fontWeight: 700 }}>
+                    {earned ? toy.name : 'Locked Toy'}
+                  </h4>
+                </div>
+              );
+            })}
+          </div>
+
+          {selectedToy && (
+            <div 
+              style={{ 
+                background: 'var(--bg-glass-strong)', 
+                border: `2px solid ${selectedToy.color}`, 
+                borderRadius: '20px', 
+                padding: '1.5rem',
+                display: 'flex',
+                gap: '1.5rem',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                animation: 'pianoFloat 0.3s ease'
+              }}
+            >
+              <div style={{ fontSize: '5rem', background: 'rgba(255,255,255,0.05)', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>
+                {selectedToy.emoji}
+              </div>
+              <div style={{ flex: 1, minWidth: '240px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <h3 style={{ fontFamily: 'var(--font-fun)', fontSize: '1.3rem', color: '#FFF', margin: 0 }}>
+                    {selectedToy.name} Unlocked! 🏆
+                  </h3>
+                  <button 
+                    onClick={() => speakToyDescription(selectedToy)}
+                    className="btn btn-secondary btn-sm"
+                    style={{ padding: '4px 10px', fontSize: '0.75rem', gap: '4px' }}
+                  >
+                    🔊 Read Aloud
+                  </button>
+                </div>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', margin: '0.5rem 0 1rem 0', lineHeight: 1.4 }}>
+                  {selectedToy.description}
+                </p>
+                <div style={{ background: 'rgba(251, 146, 60, 0.05)', borderLeft: '3px solid #FB923C', padding: '0.75rem 1rem', borderRadius: '0 8px 8px 0' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#FB923C', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '0.2rem' }}>💡 Fun AI & Robotics Fact:</span>
+                  <p style={{ color: 'var(--text-primary)', fontSize: '0.85rem', margin: 0, lineHeight: 1.4 }}>
+                    {selectedToy.funFact}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!selectedToy && (
+            <div style={{ textAlign: 'center', padding: '2rem', background: 'var(--bg-glass)', borderRadius: '16px', border: '1px dashed var(--border-subtle)' }}>
+              <span style={{ fontSize: '3rem' }}>🔍</span>
+              <h4 style={{ fontFamily: 'var(--font-fun)', color: 'var(--text-secondary)', margin: '0.5rem 0' }}>Click an unlocked toy above to view details!</h4>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: 0 }}>Your toys are automatically saved to your shelf forever.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeSection === 'cartoons' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ gridColumn: 'span 2', minWidth: '320px' }}>
+            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-subtle)', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
+              <iframe
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                src={`https://www.youtube-nocookie.com/embed/${selectedVid}?autoplay=0&rel=0&showinfo=0`}
+                title="RoboKid Safe Player"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                sandbox="allow-scripts allow-same-origin allow-presentation"
+                allowFullScreen
+              />
+            </div>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', marginTop: '1rem', color: '#fff' }}>
+              {videos.find(v => v.id === selectedVid)?.title}
+            </h3>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <h4 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-muted)' }}>Robotics & AI Theatre 📺</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
+              {videos.map(v => (
+                <div key={v.id} onClick={() => { playClick(); setSelectedVid(v.id); }} style={{
+                  display: 'flex', gap: '0.75rem', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer',
+                  background: selectedVid === v.id ? 'rgba(251, 146, 60, 0.1)' : 'var(--bg-glass)',
+                  border: selectedVid === v.id ? '1px solid #FB923C' : '1px solid var(--border-subtle)',
+                  transition: 'all 0.15s'
+                }}>
+                  <div style={{ width: '60px', height: '45px', background: '#1e293b', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', flexShrink: 0 }}>{v.thumbnail}</div>
+                  <div>
+                    <h5 style={{ fontSize: '0.8rem', color: '#fff', margin: 0, lineHeight: 1.3 }}>{v.title}</h5>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{v.creator}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -857,6 +1059,21 @@ export default function DashboardPage() {
   const [isBeatActive, setIsBeatActive] = useState(false);
   const [isGatedLoaded, setIsGatedLoaded] = useState(false);
   const [isBrightTheme, setIsBrightTheme] = useState(false);
+  const [celebratedToy, setCelebratedToy] = useState<Toy | null>(null);
+
+  // Listen to virtual toy award events
+  useEffect(() => {
+    const handleAward = (e: Event) => {
+      const customEvent = e as CustomEvent<{ toyId: string }>;
+      const toyId = customEvent.detail.toyId;
+      const { success, toy } = awardToy(toyId);
+      if (success && toy) {
+        setCelebratedToy(toy);
+      }
+    };
+    window.addEventListener('robokid-award-toy', handleAward);
+    return () => window.removeEventListener('robokid-award-toy', handleAward);
+  }, []);
 
   // Initialize theme state on load
   useEffect(() => {
@@ -1043,7 +1260,7 @@ export default function DashboardPage() {
             { key: 'ai' as const, label: '🤖 AI' },
             { key: 'generate' as const, label: '✨ Generate' },
             { key: 'gallery' as const, label: '🎨 Gallery' },
-            { key: 'videos' as const, label: '📺 Videos' },
+            { key: 'videos' as const, label: '🧸 Toys & Cartoons' },
             { key: 'lugha' as const, label: '👅 Lugha Yetu' }
           ].map(tab => (
             <button key={tab.key} onClick={() => { playClick(); setActiveTab(tab.key as any); setShowQuiz(false); setActiveSubject(null); }} style={{
@@ -1184,7 +1401,7 @@ export default function DashboardPage() {
 
         {activeTab === 'gallery' && <ImageGallery />}
 
-        {activeTab === 'videos' && <DashboardVideosTab />}
+        {activeTab === 'videos' && <ToysAndCartoonsTab />}
 
         {activeTab === 'lugha' && <MotherTongueCard />}
 
@@ -1192,6 +1409,109 @@ export default function DashboardPage() {
 
         {activeTab === 'notes' && <TextbookNotesPanel stage={stage} selectedGrade={selectedGrade} />}
       </div>
+
+      {/* 🌟 TOY AWARD CELEBRATION MODAL 🌟 */}
+      {celebratedToy && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'rgba(5, 8, 22, 0.95)', zIndex: 9999, display: 'flex',
+          alignItems: 'center', justifyContent: 'center', padding: '2rem',
+          animation: 'fadeIn 0.3s ease'
+        }}>
+          {/* Confetti styling */}
+          <style>{`
+            @keyframes confettiFall {
+              0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+              100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+            }
+            .confetti-piece {
+              position: absolute;
+              width: 10px;
+              height: 10px;
+              border-radius: 50%;
+              animation: confettiFall 4s linear infinite;
+            }
+          `}</style>
+          
+          {/* Scatter Confetti Pieces */}
+          {Array.from({ length: 40 }).map((_, i) => {
+            const left = `${Math.random() * 100}%`;
+            const delay = `${Math.random() * 4}s`;
+            const color = ['#FF4B5C', '#FF8A5B', '#FFC75F', '#4E9F3D', '#1089FF', '#845EC2', '#FF96AD'][i % 7];
+            return (
+              <div 
+                key={i} 
+                className="confetti-piece" 
+                style={{ left, top: '-20px', background: color, animationDelay: delay }} 
+              />
+            );
+          })}
+
+          <div 
+            className="glass-card animate-bounce-subtle" 
+            style={{
+              padding: '3rem 2rem',
+              maxWidth: '480px',
+              textAlign: 'center',
+              borderRadius: '32px',
+              border: `3px solid ${celebratedToy.color}`,
+              boxShadow: `0 0 40px ${celebratedToy.color}`,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '1.25rem',
+              background: '#0B0F19'
+            }}
+          >
+            <div style={{ fontSize: '7rem', filter: 'drop-shadow(0 0 15px rgba(255,255,255,0.4))' }}>
+              {celebratedToy.emoji}
+            </div>
+            <h2 style={{ fontFamily: 'var(--font-fun)', fontSize: '2rem', color: '#FFF', margin: 0, textShadow: '0 0 10px rgba(99,102,241,0.5)' }}>
+              🌟 Toy Unlocked! 🌟
+            </h2>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: celebratedToy.color, margin: 0 }}>
+              {celebratedToy.name}
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.5, margin: 0 }}>
+              {celebratedToy.description}
+            </p>
+            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '16px', border: '1px solid var(--border-subtle)', width: '100%' }}>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '0.25rem' }}>🎯 How you unlocked it:</span>
+              <span style={{ color: '#34D399', fontSize: '0.9rem', fontWeight: 600 }}>{celebratedToy.howToUnlock}</span>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '0.75rem', width: '100%', marginTop: '1rem' }}>
+              <button 
+                onClick={() => {
+                  playClick();
+                  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(celebratedToy.audioText);
+                    utterance.pitch = 1.35;
+                    utterance.rate = 1.0;
+                    window.speechSynthesis.speak(utterance);
+                  }
+                }}
+                className="btn btn-secondary"
+                style={{ flex: 1, padding: '0.75rem', fontSize: '0.95rem' }}
+              >
+                🔊 Make Sound
+              </button>
+              <button 
+                onClick={() => {
+                  playClick();
+                  setCelebratedToy(null);
+                  setActiveTab('videos');
+                }}
+                className="btn btn-primary"
+                style={{ flex: 1, padding: '0.75rem', fontSize: '0.95rem', background: celebratedToy.color, borderColor: celebratedToy.color }}
+              >
+                Put on my Shelf
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

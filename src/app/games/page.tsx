@@ -371,10 +371,18 @@ function SpellingBeeGame() {
     const answer = input.toUpperCase().trim().replace(/\s+/g, '');
     
     if (answer === target) {
-      setScore(s => s + 10);
+      const newScore = score + 10;
+      setScore(newScore);
       setRevealed(true);
       setFeedback('🎉 Correct!');
       speakRoboticComment(`Excellent job! You spelled ${words[index].kiswahili} perfectly!`);
+      
+      if (newScore >= words.length * 10) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('robokid-award-toy', { detail: { toyId: 'toy_lion' } }));
+        }
+      }
+
       setTimeout(() => {
         setIndex(i => (i + 1) % words.length);
         setInput('');

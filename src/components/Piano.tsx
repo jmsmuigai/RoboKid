@@ -103,6 +103,15 @@ export default function Piano() {
           // Song completed!
           playSuccess();
           speakRoboticComment(`Amazing! You completed ${song.title.split(' ').slice(1).join(' ')}. You are a super music star!`);
+          
+          let awardId = 'toy_kalimba';
+          if (song.title.includes('Jambo Bwana')) {
+            awardId = 'toy_rocket';
+          }
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('robokid-award-toy', { detail: { toyId: awardId } }));
+          }
+
           setActiveSongIdx(null);
           setCurrentNoteIdx(0);
         } else {
