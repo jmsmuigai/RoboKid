@@ -1130,7 +1130,349 @@ export const curriculumTopics: Topic[] = [
       'Explain how speech translation handles Somali and Kikuyu'
     ],
     keywords: ['artificial intelligence', 'neural network', 'pattern', 'ethics']
-  }
+  },
+
+  // ==========================================
+  // RELIGIOUS EDUCATION — All Grades (CBC Kenya)
+  // Christian Religious Education (CRE)
+  // ==========================================
+
+  // GRADE 1
+  {
+    id: 'g1-re-001',
+    title: 'God Created the World',
+    description: 'Learn how God created the world in 6 days and rested on the 7th — the story of Creation',
+    grade: 1, subject: 'religious', term: 1,
+    strand: 'Creation',
+    subStrand: 'God the Creator',
+    learningOutcomes: [
+      'Name the things God created in order',
+      'Appreciate God\'s creation around us in Kenya',
+      'Recite Genesis 1:1 by heart',
+    ],
+    suggestedActivities: [
+      'Draw the things God created on each day',
+      'Walk around the school compound and list nature\'s beauty',
+      'Sing "He\'s Got the Whole World in His Hands"',
+    ],
+    keywords: ['creation', 'God', 'Genesis', 'world', 'days'],
+  },
+  {
+    id: 'g1-re-002',
+    title: 'God Loves Me — John 3:16',
+    description: 'Understand and memorize John 3:16 — the most famous verse about God\'s love',
+    grade: 1, subject: 'religious', term: 1,
+    strand: 'God\'s Love',
+    subStrand: 'Salvation',
+    learningOutcomes: [
+      'Recite John 3:16 in English and mother tongue',
+      'Explain what it means that God loves the world',
+      'Feel confident that God loves each child personally',
+    ],
+    suggestedActivities: [
+      'Make a heart craft with John 3:16 written inside',
+      'Learn John 3:16 in Kikuyu, Luo or Kiswahili',
+      'Draw a picture of Jesus and write "Jesus loves me"',
+    ],
+    keywords: ['love', 'John', 'God', 'world', 'eternal life'],
+  },
+  {
+    id: 'g1-re-003',
+    title: 'The Story of Noah\'s Ark',
+    description: 'Noah obeyed God, built an ark, and saved his family and animals from the flood',
+    grade: 1, subject: 'religious', term: 2,
+    strand: 'Bible Stories',
+    subStrand: 'Obedience',
+    learningOutcomes: [
+      'Tell the story of Noah and the flood in their own words',
+      'Explain the meaning of the rainbow as God\'s promise',
+      'Value the importance of obeying God and parents',
+    ],
+    suggestedActivities: [
+      'Colour a picture of Noah\'s Ark with all the animals',
+      'Make a rainbow craft using coloured paper',
+      'Act out the story of Noah\'s ark in groups',
+    ],
+    keywords: ['Noah', 'ark', 'flood', 'rainbow', 'obedience', 'promise'],
+  },
+  {
+    id: 'g1-re-004',
+    title: 'The Lord is My Shepherd — Psalm 23',
+    description: 'Psalm 23 tells us God cares for us like a shepherd cares for his sheep',
+    grade: 1, subject: 'religious', term: 3,
+    strand: 'Psalms',
+    subStrand: 'God\'s Care',
+    learningOutcomes: [
+      'Memorize Psalm 23:1 in English and mother tongue',
+      'Describe how a shepherd takes care of sheep',
+      'Relate God\'s care to their daily life in Kenya',
+    ],
+    suggestedActivities: [
+      'Draw a shepherd with sheep on a Kenyan hillside',
+      'Learn Psalm 23 as a song or spoken word',
+      'Write Psalm 23:1 in their mother tongue (Kikuyu/Luo/Kiswahili)',
+    ],
+    keywords: ['Psalm', 'shepherd', 'sheep', 'God', 'care', 'protection'],
+  },
+
+  // GRADE 2
+  {
+    id: 'g2-re-001',
+    title: 'David and Goliath — Courage with God',
+    description: 'Young David defeated the giant Goliath with faith and a small stone — God helps the brave!',
+    grade: 2, subject: 'religious', term: 1,
+    strand: 'Bible Heroes',
+    subStrand: 'Faith & Courage',
+    learningOutcomes: [
+      'Tell the story of David and Goliath',
+      'Explain how faith in God gives us courage',
+      'Apply lessons of courage to challenges at school',
+    ],
+    suggestedActivities: [
+      'Act out the David vs Goliath story in class',
+      'Make "stones of courage" — pebbles with Philippians 4:13 written on them',
+      'Discuss a time you were brave like David',
+    ],
+    keywords: ['David', 'Goliath', 'courage', 'faith', 'stone', 'giant'],
+  },
+  {
+    id: 'g2-re-002',
+    title: 'Jesus Feeds 5000 People — Sharing is Caring',
+    description: 'A small boy shared his five loaves and two fish and Jesus fed 5000 people!',
+    grade: 2, subject: 'religious', term: 2,
+    strand: 'Miracles of Jesus',
+    subStrand: 'Generosity',
+    learningOutcomes: [
+      'Tell the miracle story of feeding the 5000',
+      'Demonstrate the value of sharing with others',
+      'Relate the miracle to sharing lunch at school',
+    ],
+    suggestedActivities: [
+      'Bring a small lunch item to share with the class',
+      'Draw the boy sharing his bread and fish',
+      'Discuss how sharing makes everyone feel happy',
+    ],
+    keywords: ['Jesus', 'miracle', 'bread', 'fish', 'sharing', '5000'],
+  },
+  {
+    id: 'g2-re-003',
+    title: 'The Good Samaritan — Helping Our Neighbors',
+    description: 'Learn to love and help everyone — even strangers — just like the Good Samaritan',
+    grade: 2, subject: 'religious', term: 3,
+    strand: 'Parables of Jesus',
+    subStrand: 'Love & Kindness',
+    learningOutcomes: [
+      'Retell the parable of the Good Samaritan',
+      'Explain who our "neighbor" is according to Jesus',
+      'Show acts of kindness to classmates and community',
+    ],
+    suggestedActivities: [
+      'Create a class "Kindness Board" with good deeds done this week',
+      'Role-play helping someone who is hurt or sad',
+      'Connect the parable to helping people in Nairobi, Kisumu or Garissa',
+    ],
+    keywords: ['Samaritan', 'neighbor', 'kindness', 'help', 'love', 'parable'],
+  },
+
+  // GRADE 3
+  {
+    id: 'g3-re-001',
+    title: 'Daniel in the Lions\' Den — Never Stop Praying',
+    description: 'Daniel prayed faithfully to God even when it was against the law — and God saved him!',
+    grade: 3, subject: 'religious', term: 1,
+    strand: 'Bible Heroes',
+    subStrand: 'Prayer & Faithfulness',
+    learningOutcomes: [
+      'Tell the story of Daniel in the lions\' den',
+      'Understand the power of faithful daily prayer',
+      'Practice praying morning, afternoon, and evening like Daniel',
+    ],
+    suggestedActivities: [
+      'Write a short prayer of thanks like Daniel might have prayed',
+      'Draw Daniel praying with lions around him — and an angel protecting him',
+      'Discuss what you would do if someone told you not to pray to God',
+    ],
+    keywords: ['Daniel', 'prayer', 'lions', 'faithfulness', 'God', 'angel'],
+  },
+  {
+    id: 'g3-re-002',
+    title: 'The Ten Commandments — God\'s Rules',
+    description: 'God gave Moses ten important rules to help people live peacefully and love each other',
+    grade: 3, subject: 'religious', term: 2,
+    strand: 'God\'s Word',
+    subStrand: 'The Law',
+    learningOutcomes: [
+      'Name the Ten Commandments from memory',
+      'Explain why God gave us rules to follow',
+      'Relate commandments to school rules and family values',
+    ],
+    suggestedActivities: [
+      'Create a "Ten Commandments tablet" from clay or cardboard',
+      'Match each commandment to a real-life situation in Kenya',
+      'Write a letter to Moses asking him questions about the commandments',
+    ],
+    keywords: ['commandments', 'Moses', 'law', 'rules', 'God', 'Sinai'],
+  },
+  {
+    id: 'g3-re-003',
+    title: 'The Sermon on the Mount — Beatitudes',
+    description: 'Jesus taught the Beatitudes — eight blessings for living a happy and godly life',
+    grade: 3, subject: 'religious', term: 3,
+    strand: 'Teachings of Jesus',
+    subStrand: 'Beatitudes',
+    learningOutcomes: [
+      'List the Beatitudes from Matthew 5:3-12',
+      'Explain the meaning of "Blessed are the peacemakers"',
+      'Show peacemaking skills in classroom interactions',
+    ],
+    suggestedActivities: [
+      'Write each Beatitude on a leaf shape — make a Beatitudes tree',
+      'Role-play being a peacemaker in a school conflict',
+      'Discuss how the Beatitudes relate to Ubuntu — community harmony',
+    ],
+    keywords: ['beatitudes', 'blessed', 'sermon', 'mountain', 'peace', 'Matthew'],
+  },
+
+  // GRADE 4
+  {
+    id: 'g4-re-001',
+    title: 'The Life of Jesus — Birth, Ministry, Death & Resurrection',
+    description: 'A comprehensive look at the life of Jesus from his birth in Bethlehem to his resurrection',
+    grade: 4, subject: 'religious', term: 1,
+    strand: 'Life of Jesus',
+    subStrand: 'Gospel',
+    learningOutcomes: [
+      'Outline the key events in the life of Jesus',
+      'Explain the significance of the death and resurrection of Jesus',
+      'Connect the Easter story to hope and new beginnings',
+    ],
+    suggestedActivities: [
+      'Create a timeline of Jesus\'s life from birth to resurrection',
+      'Act out the Easter story in school assembly',
+      'Write a newspaper article: "Miracle Worker Seen in Galilee!"',
+    ],
+    keywords: ['Jesus', 'birth', 'resurrection', 'Easter', 'Bethlehem', 'cross'],
+  },
+  {
+    id: 'g4-re-002',
+    title: 'Jeremiah 29:11 — God Has Great Plans for You!',
+    description: 'God told Jeremiah that He has plans to give us hope and a wonderful future',
+    grade: 4, subject: 'religious', term: 2,
+    strand: 'Prophecy',
+    subStrand: 'God\'s Purpose',
+    learningOutcomes: [
+      'Memorize Jeremiah 29:11 in English and mother tongue',
+      'Believe that God has a special plan for their life',
+      'Set goals for the future with trust in God\'s plan',
+    ],
+    suggestedActivities: [
+      'Write "My Future Goals" letter guided by Jeremiah 29:11',
+      'Make a "God\'s Plan for Me" vision board',
+      'Discuss Kenyan role models who trusted God\'s plan — e.g. Wangari Maathai',
+    ],
+    keywords: ['Jeremiah', 'plans', 'hope', 'future', 'purpose', 'God'],
+  },
+
+  // GRADE 5
+  {
+    id: 'g5-re-001',
+    title: 'Fruit of the Spirit — Galatians 5:22-23',
+    description: 'Learn the 9 fruits of the Holy Spirit: love, joy, peace, patience, kindness, goodness, faithfulness, gentleness, self-control',
+    grade: 5, subject: 'religious', term: 1,
+    strand: 'Holy Spirit',
+    subStrand: 'Fruit of the Spirit',
+    learningOutcomes: [
+      'Name all 9 fruits of the Spirit from Galatians 5:22-23',
+      'Demonstrate at least 3 fruits of the Spirit in daily school life',
+      'Understand the role of the Holy Spirit in a Christian\'s life',
+    ],
+    suggestedActivities: [
+      'Create a fruit tree artwork with each fruit labeled',
+      'Keep a weekly journal of when you showed a fruit of the Spirit',
+      'Discuss how self-control helps in exams and sports',
+    ],
+    keywords: ['Galatians', 'Spirit', 'love', 'joy', 'peace', 'patience', 'kindness', 'faithfulness'],
+  },
+  {
+    id: 'g5-re-002',
+    title: 'The Greatest Commandment — Matthew 22:37-39',
+    description: 'Jesus summed up all of God\'s law in two commands: Love God and love your neighbor',
+    grade: 5, subject: 'religious', term: 2,
+    strand: 'Teachings of Jesus',
+    subStrand: 'Greatest Commandment',
+    learningOutcomes: [
+      'Memorize Matthew 22:37-39 in English and one mother tongue',
+      'Explain how loving God leads to loving others',
+      'Design a school or community project based on loving neighbors',
+    ],
+    suggestedActivities: [
+      'Visit a community elder or orphan home in Nairobi/Kisumu',
+      'Create a "Love Your Neighbor" poster for the school',
+      'Write a poem about love in English, Kiswahili, and your mother tongue',
+    ],
+    keywords: ['love', 'commandment', 'Matthew', 'neighbor', 'God', 'heart'],
+  },
+
+  // GRADE 6
+  {
+    id: 'g6-re-001',
+    title: 'Justice and Mercy — Micah 6:8',
+    description: 'God calls us to act justly, love mercy and walk humbly — what does this mean in Kenya today?',
+    grade: 6, subject: 'religious', term: 1,
+    strand: 'Prophets',
+    subStrand: 'Social Justice',
+    learningOutcomes: [
+      'Explain what "act justly, love mercy, walk humbly" means in Micah 6:8',
+      'Identify injustices in Kenyan society and propose godly solutions',
+      'Demonstrate humility and fairness in school leadership',
+    ],
+    suggestedActivities: [
+      'Research a Kenyan justice issue (e.g. child labor, hunger) and present solutions',
+      'Organize a class "Justice Day" with fair rules and community service',
+      'Write a speech as if you are Micah speaking to Kenya today',
+    ],
+    keywords: ['Micah', 'justice', 'mercy', 'humility', 'social justice', 'Kenya'],
+  },
+  {
+    id: 'g6-re-002',
+    title: 'Romans 8:28 — All Things Work for Good',
+    description: 'Paul teaches that God causes all things — even hard times — to work together for good',
+    grade: 6, subject: 'religious', term: 2,
+    strand: 'Epistles',
+    subStrand: 'Suffering & Hope',
+    learningOutcomes: [
+      'Memorize Romans 8:28 in English and mother tongue',
+      'Give examples of people in Kenya who trusted God through hard times',
+      'Share how a personal difficulty led to something good',
+    ],
+    suggestedActivities: [
+      'Interview a grandparent or elder about trusting God through hard times',
+      'Write a short biography of a Kenyan who overcame hardship with faith',
+      'Create a "Good Out of Difficulty" timeline for a Bible character',
+    ],
+    keywords: ['Romans', 'suffering', 'hope', 'good', 'purpose', 'faith'],
+  },
+
+  // GRADE 7 — ADVANCED
+  {
+    id: 'g7-re-001',
+    title: 'AI, Robotics & Faith — Can Machines Have a Soul?',
+    description: 'An advanced discussion: What does the Bible say about human uniqueness? How does our faith guide how we use technology?',
+    grade: 7, subject: 'religious', term: 1,
+    strand: 'Faith & Technology',
+    subStrand: 'Christian Ethics in AI',
+    learningOutcomes: [
+      'Discuss the biblical basis for human dignity and uniqueness (Genesis 1:27)',
+      'Evaluate the ethical use of AI from a Christian worldview',
+      'Propose how Kenyan Christians can use technology responsibly',
+    ],
+    suggestedActivities: [
+      'Debate: "Should robots replace humans in church worship?" — use Bible to support your view',
+      'Write an essay: "How Should African Christians Use AI Responsibly?"',
+      'Discuss: Does a robot have free will? What does the Bible say about free will?',
+    ],
+    keywords: ['AI', 'robots', 'faith', 'ethics', 'technology', 'Christian', 'human dignity'],
+  },
 ];
 
 /** Get topics by grade */

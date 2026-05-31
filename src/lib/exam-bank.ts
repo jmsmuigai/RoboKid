@@ -609,6 +609,165 @@ export const examQuestions: ExamQuestion[] = [
     difficulty: 'easy', term: 1, strand: 'Ufahamu',
     kenyanContext: 'Kenya\'s first president and national history',
   },
+
+  // ==========================================
+  // RELIGIOUS EDUCATION — CRE EXAM QUESTIONS
+  // CBC Kenya aligned (Grades 1-6)
+  // ==========================================
+
+  // GRADE 1 — CRE
+  {
+    id: 'g1re001', grade: 1, subject: 'religious', type: 'multiple_choice',
+    question: 'Who created the world and everything in it?',
+    options: ['Noah', 'God', 'Moses', 'David'],
+    correctAnswer: 'God',
+    explanation: 'According to Genesis 1:1, "In the beginning, God created the heavens and the earth."',
+    difficulty: 'easy', term: 1, strand: 'Creation',
+    kenyanContext: 'Looking at Mount Kenya, Lake Victoria and Kenya\'s beautiful nature',
+  },
+  {
+    id: 'g1re002', grade: 1, subject: 'religious', type: 'multiple_choice',
+    question: 'In John 3:16, God gave His only Son to the world. What is the Son\'s name?',
+    options: ['Moses', 'Noah', 'Jesus', 'David'],
+    correctAnswer: 'Jesus',
+    explanation: 'John 3:16 says God gave His only Son — Jesus — so that we may have eternal life.',
+    difficulty: 'easy', term: 1, strand: 'God\'s Love',
+    kenyanContext: 'Children learning about Jesus in Sunday school',
+  },
+  {
+    id: 'g1re003', grade: 1, subject: 'religious', type: 'multiple_choice',
+    question: 'What did God put in the sky after Noah\'s flood as a sign of His promise?',
+    options: ['A star', 'A rainbow', 'A cloud', 'The sun'],
+    correctAnswer: 'A rainbow',
+    explanation: 'God placed a rainbow in the sky as His promise to never flood the whole earth again (Genesis 9:13).',
+    difficulty: 'easy', term: 2, strand: 'Noah\'s Ark',
+    kenyanContext: 'Seeing a rainbow over the Kenyan hills after rain',
+  },
+  {
+    id: 'g1re004', grade: 1, subject: 'religious', type: 'fill_blank',
+    question: 'Psalm 23:1 says: "The Lord is my ___; I shall not want."',
+    correctAnswer: 'shepherd',
+    explanation: 'Psalm 23:1 compares God to a shepherd who takes care of his sheep — just like God takes care of us.',
+    difficulty: 'easy', term: 3, strand: 'Psalms',
+    kenyanContext: 'A Maasai shepherd with sheep in the Kenyan highlands',
+  },
+
+  // GRADE 2 — CRE
+  {
+    id: 'g2re001', grade: 2, subject: 'religious', type: 'multiple_choice',
+    question: 'David defeated the giant Goliath using what weapon?',
+    options: ['A sword', 'A bow and arrow', 'A sling and a stone', 'A spear'],
+    correctAnswer: 'A sling and a stone',
+    explanation: 'Young David used his shepherd\'s sling and a small stone to defeat Goliath (1 Samuel 17). With God\'s help, small people can do great things!',
+    difficulty: 'easy', term: 1, strand: 'Bible Heroes',
+    kenyanContext: 'Like a young Kenyan child trusting God at school',
+  },
+  {
+    id: 'g2re002', grade: 2, subject: 'religious', type: 'multiple_choice',
+    question: 'How many people did Jesus feed with five loaves of bread and two fish?',
+    options: ['500', '1000', '5000', '50'],
+    correctAnswer: '5000',
+    explanation: 'In John 6, Jesus performed a miracle and fed 5000 people from a small boy\'s lunch of 5 loaves and 2 fish!',
+    difficulty: 'medium', term: 2, strand: 'Miracles of Jesus',
+    kenyanContext: 'Sharing lunch with classmates at school',
+  },
+  {
+    id: 'g2re003', grade: 2, subject: 'religious', type: 'true_false',
+    question: 'In the parable of the Good Samaritan, the priest stopped to help the injured man. TRUE or FALSE?',
+    options: ['TRUE', 'FALSE'],
+    correctAnswer: 'FALSE',
+    explanation: 'FALSE! Both the priest and the Levite passed by the injured man without helping. It was the Good Samaritan who stopped and helped.',
+    difficulty: 'medium', term: 3, strand: 'Parables',
+    kenyanContext: 'Helping someone who has fallen down in your neighbourhood in Nairobi',
+  },
+
+  // GRADE 3 — CRE
+  {
+    id: 'g3re001', grade: 3, subject: 'religious', type: 'multiple_choice',
+    question: 'Daniel was thrown into a den of lions because he refused to stop ___ to God.',
+    options: ['singing', 'praying', 'fasting', 'dancing'],
+    correctAnswer: 'praying',
+    explanation: 'Daniel prayed to God three times a day even when it was against the king\'s law. God sent an angel to protect him.',
+    difficulty: 'easy', term: 1, strand: 'Bible Heroes',
+    kenyanContext: 'Being faithful in prayer like many Kenyan Christians',
+  },
+  {
+    id: 'g3re002', grade: 3, subject: 'religious', type: 'multiple_choice',
+    question: 'God gave the Ten Commandments to which Bible leader?',
+    options: ['Abraham', 'David', 'Moses', 'Noah'],
+    correctAnswer: 'Moses',
+    explanation: 'God gave the Ten Commandments to Moses on Mount Sinai. These rules help us live peacefully and love God and others.',
+    difficulty: 'easy', term: 2, strand: 'The Ten Commandments',
+    kenyanContext: 'School rules are like God\'s commandments to keep order',
+  },
+  {
+    id: 'g3re003', grade: 3, subject: 'religious', type: 'multiple_choice',
+    question: 'In the Beatitudes, Jesus said "Blessed are the ___makers, for they will be called children of God." (Matthew 5:9)',
+    options: ['bread', 'peace', 'trouble', 'music'],
+    correctAnswer: 'peace',
+    explanation: 'Jesus said "Blessed are the PEACEMAKERS" — people who bring peace and solve conflicts are blessed by God.',
+    difficulty: 'medium', term: 3, strand: 'Beatitudes',
+    kenyanContext: 'Being a peacemaker in school and community — important for Kenya\'s unity',
+  },
+
+  // GRADE 4 — CRE
+  {
+    id: 'g4re001', grade: 4, subject: 'religious', type: 'multiple_choice',
+    question: 'Where was Jesus born?',
+    options: ['Jerusalem', 'Nazareth', 'Bethlehem', 'Galilee'],
+    correctAnswer: 'Bethlehem',
+    explanation: 'Jesus was born in Bethlehem as prophesied in Micah 5:2. His birth is celebrated at Christmas every year.',
+    difficulty: 'easy', term: 1, strand: 'Life of Jesus',
+    kenyanContext: 'Christmas celebrations across Kenya',
+  },
+  {
+    id: 'g4re002', grade: 4, subject: 'religious', type: 'fill_blank',
+    question: 'Jeremiah 29:11 says: "For I know the plans I have for you, plans to ___ you and not to harm you." (BWANA)',
+    correctAnswer: 'prosper',
+    explanation: 'God\'s plan is to PROSPER us — give us good things and a hopeful future. This means God has great plans for your life!',
+    difficulty: 'medium', term: 2, strand: 'God\'s Purpose',
+    kenyanContext: 'Kenyan children have a bright future when they trust God',
+  },
+
+  // GRADE 5 — CRE
+  {
+    id: 'g5re001', grade: 5, subject: 'religious', type: 'multiple_choice',
+    question: 'According to Galatians 5:22, which of the following is NOT a fruit of the Spirit?',
+    options: ['Love', 'Anger', 'Joy', 'Peace'],
+    correctAnswer: 'Anger',
+    explanation: 'The fruits of the Spirit are: love, joy, peace, patience, kindness, goodness, faithfulness, gentleness, and self-control. Anger is NOT a fruit of the Spirit!',
+    difficulty: 'medium', term: 1, strand: 'Fruit of the Spirit',
+    kenyanContext: 'Showing kindness and peace at school and at home',
+  },
+  {
+    id: 'g5re002', grade: 5, subject: 'religious', type: 'multiple_choice',
+    question: 'Jesus said the two greatest commandments are to love God with all your heart and to love your ___ as yourself.',
+    options: ['teacher', 'neighbor', 'enemy', 'country'],
+    correctAnswer: 'neighbor',
+    explanation: 'Matthew 22:37-39 — Jesus said all the commandments can be summed up in two: Love God, and Love your Neighbor as yourself.',
+    difficulty: 'medium', term: 2, strand: 'Greatest Commandment',
+    kenyanContext: 'Ubuntu — "I am because we are" — the African value of loving community',
+  },
+
+  // GRADE 6 — CRE
+  {
+    id: 'g6re001', grade: 6, subject: 'religious', type: 'multiple_choice',
+    question: 'Micah 6:8 says God requires us to act justly, love mercy, and walk ___ with God.',
+    options: ['proudly', 'humbly', 'quickly', 'silently'],
+    correctAnswer: 'humbly',
+    explanation: 'Micah 6:8 is a call to social justice — to be fair, show kindness, and be humble before God. This applies to how we treat all people in Kenya.',
+    difficulty: 'hard', term: 1, strand: 'Social Justice',
+    kenyanContext: 'Justice for all Kenyans — the constitution of Kenya emphasizes equity',
+  },
+  {
+    id: 'g6re002', grade: 6, subject: 'religious', type: 'true_false',
+    question: 'Romans 8:28 says that God makes all things work together for the good of those who love Him. TRUE or FALSE?',
+    options: ['TRUE', 'FALSE'],
+    correctAnswer: 'TRUE',
+    explanation: 'TRUE! Romans 8:28 is a great encouragement — even in hard times, God is working everything out for good for those who love Him.',
+    difficulty: 'medium', term: 2, strand: 'Faith & Hope',
+    kenyanContext: 'Many Kenyan families trust this verse during difficult times like drought or illness',
+  },
 ];
 
 /** Get questions by grade */

@@ -336,6 +336,7 @@ function SubjectCard({ icon, name, color, description, topics, delay }: {
 export default function HomePage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isBrightTheme, setIsBrightTheme] = useState(false);
+  const [footerModal, setFooterModal] = useState<{ title: string; content: React.ReactNode } | null>(null);
   
   useEffect(() => {
     setIsLoaded(true);
@@ -753,18 +754,18 @@ export default function HomePage() {
             <h4>Resources</h4>
             <ul className="footer-links">
               <li><a href="/playbook">RoboKid Playbook</a></li>
-              <li><a href="#">CBC Curriculum Guide</a></li>
-              <li><a href="#">For Parents</a></li>
-              <li><a href="#">For Teachers</a></li>
+              <li><a href="/encyclopedia">CBC Curriculum Guide</a></li>
+              <li><a href="/playbook">For Parents</a></li>
+              <li><a href="/playbook">For Teachers</a></li>
             </ul>
           </div>
           <div>
             <h4>Company</h4>
             <ul className="footer-links">
-              <li><a href="#">About Us</a></li>
-              <li><a href="#">Contact</a></li>
-              <li><a href="#">Privacy Policy</a></li>
-              <li><a href="#">Terms of Service</a></li>
+              <li><button onClick={() => { playClick(); setFooterModal({ title: 'About RoboKid 🤖', content: <p>RoboKid is Kenyas premier AI-powered Competency-Based Curriculum (CBC) learning platform for kids. We merge storytelling, interactive Web Audio piano, code compilers, handwriting tracing, and localized languages (English, Swahili, Kikuyu, Luo, Somali) to build future innovators!</p> }); }} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0, textAlign: 'left', font: 'inherit' }}>About Us</button></li>
+              <li><button onClick={() => { playClick(); setFooterModal({ title: 'Contact Us 📞', content: <p>We would love to hear from parents, teachers, and schools! Drop us an email at <strong>hello@robokid.co.ke</strong> or call us at <strong>+254 700 000 000</strong>. Our learning office is located in Nairobi, Kenya.</p> }); }} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0, textAlign: 'left', font: 'inherit' }}>Contact</button></li>
+              <li><button onClick={() => { playClick(); setFooterModal({ title: 'Privacy Policy 🔒', content: <p>At RoboKid, kids safety is our highest priority. We do not collect personal identifiable data or sell data to third parties. All voice recordings and drawing canvases are saved locally in the browser memory and never uploaded to external servers.</p> }); }} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0, textAlign: 'left', font: 'inherit' }}>Privacy Policy</button></li>
+              <li><button onClick={() => { playClick(); setFooterModal({ title: 'Terms of Service 📜', content: <p>By using RoboKid, you agree to play, learn, and be creative! RoboKid is free to explore, and the premium CBC mockup exams and textbook notes are accessible online or offline on local host servers.</p> }); }} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 0, textAlign: 'left', font: 'inherit' }}>Terms of Service</button></li>
             </ul>
           </div>
         </div>
@@ -786,6 +787,37 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {footerModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'rgba(5, 8, 22, 0.85)', backdropFilter: 'blur(8px)', zIndex: 99999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem',
+          animation: 'fadeIn 0.25s ease'
+        }}>
+          <div className="glass-card" style={{
+            padding: '2rem', maxWidth: '500px', width: '100%',
+            borderRadius: '24px', border: '3px solid var(--color-primary)',
+            boxShadow: '0 10px 30px rgba(99,102,241,0.2)',
+            display: 'flex', flexDirection: 'column', gap: '1.25rem',
+            background: 'var(--bg-secondary)', color: 'var(--text-primary)'
+          }}>
+            <h3 style={{ fontFamily: 'var(--font-fun)', fontSize: '1.5rem', color: 'var(--text-primary)', margin: 0 }}>
+              {footerModal.title}
+            </h3>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6 }}>
+              {footerModal.content}
+            </div>
+            <button 
+              onClick={() => { playClick(); setFooterModal(null); }}
+              className="btn btn-primary"
+              style={{ marginTop: '0.5rem', padding: '0.6rem 1.2rem', alignSelf: 'flex-end', minWidth: '100px' }}
+            >
+              OK 👍
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -72,6 +72,13 @@ export const UI_TRANSLATIONS: Record<string, Record<Language, string>> = {
     luo: '👅 Dhok Wa & Lero',
     somali: '👅 Afkeenna'
   },
+  'tab_map': {
+    english: '🏫 Schools Map',
+    kiswahili: '🏫 Ramani ya Shule',
+    kikuyu: '🏫 Ramani ya Thukuru',
+    luo: '🏫 Map mar Skul',
+    somali: '🏫 Khariiradda Dugsiyada'
+  },
   
   // Dashboard headers
   'welcome_prefix': {

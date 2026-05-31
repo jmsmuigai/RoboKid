@@ -16,6 +16,8 @@ import Terminal from '@/components/Terminal';
 import MotherTongueCard from '@/components/MotherTongueCard';
 import Piano from '@/components/Piano';
 import HandwritingPractice from '@/components/HandwritingPractice';
+import SchoolsMap from '@/components/SchoolsMap';
+import BibleChallenge from '@/components/BibleChallenge';
 import { translateUI } from '@/lib/ui-translations';
 import { getEarnedToys, TOYS_LIST, awardToy, resetToys } from '@/lib/toys-service';
 import type { Toy } from '@/lib/toys-service';
@@ -1369,7 +1371,7 @@ export default function DashboardPage() {
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('english');
   const [activeSubject, setActiveSubject] = useState<Subject | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
-  const [activeTab, setActiveTab] = useState<'learn' | 'notes' | 'quiz' | 'code' | 'music' | 'ai' | 'generate' | 'gallery' | 'videos' | 'lugha'>('learn');
+  const [activeTab, setActiveTab] = useState<'learn' | 'notes' | 'quiz' | 'code' | 'music' | 'ai' | 'generate' | 'gallery' | 'videos' | 'lugha' | 'map' | 'bible'>('learn');
   const [isBeatActive, setIsBeatActive] = useState(false);
   const [isGatedLoaded, setIsGatedLoaded] = useState(false);
   const [isBrightTheme, setIsBrightTheme] = useState(false);
@@ -1625,16 +1627,18 @@ export default function DashboardPage() {
             { key: 'generate' as const, label: '✨ Generate' },
             { key: 'gallery' as const, label: '🎨 Gallery' },
             { key: 'videos' as const, label: '🧸 Toys & Cartoons' },
-            { key: 'lugha' as const, label: '👅 Lugha Yetu' }
+            { key: 'lugha' as const, label: '👅 Lugha Yetu' },
+            { key: 'map' as const, label: '🏫 Schools Map' },
+            { key: 'bible' as const, label: '✝️ Bible & RE' },
           ].map(tab => (
             <button key={tab.key} onClick={() => { playClick(); setActiveTab(tab.key as any); setShowQuiz(false); setActiveSubject(null); }} style={{
               padding: '0.5rem 1.25rem', borderRadius: 'var(--radius-full)', fontSize: '0.9rem', fontWeight: 500,
-              background: activeTab === tab.key ? 'var(--color-primary)' : 'transparent',
+              background: activeTab === tab.key ? (tab.key === 'bible' ? 'linear-gradient(135deg, #D4A853, #B8860B)' : 'var(--color-primary)') : 'transparent',
               color: activeTab === tab.key ? 'white' : 'var(--text-secondary)',
               border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)',
               transition: 'all var(--transition-fast)',
             }}>
-              {translateUI('tab_' + (tab.key === 'videos' ? 'toys' : tab.key), selectedLanguage)}
+              {tab.key === 'bible' ? '✝️ Bible & RE' : translateUI('tab_' + (tab.key === 'videos' ? 'toys' : tab.key), selectedLanguage)}
             </button>
           ))}
         </div>
@@ -1772,7 +1776,98 @@ export default function DashboardPage() {
         {activeTab === 'music' && <Piano />}
 
         {activeTab === 'notes' && <TextbookNotesPanel stage={stage} selectedGrade={selectedGrade} />}
-        
+
+
+        {activeTab === 'map' && <SchoolsMap language={selectedLanguage} />}
+
+        {activeTab === 'bible' && (
+          <div>
+            {/* Bible & RE Section Header */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '2rem',
+              padding: '1.5rem',
+              background: 'linear-gradient(135deg, rgba(120,113,108,0.2) 0%, rgba(212,168,83,0.12) 100%)',
+              borderRadius: 24, border: '2px solid rgba(212,168,83,0.25)',
+            }}>
+              <img src="/african_bible_study.png" alt="African children's Bible study" style={{ width: 90, height: 90, borderRadius: 16, objectFit: 'cover', border: '2px solid rgba(212,168,83,0.4)', flexShrink: 0 }} />
+              <div style={{ fontSize: '3.5rem', filter: 'drop-shadow(0 0 10px rgba(212,168,83,0.5))' }}>✝️</div>
+              <div>
+                <h2 style={{
+                  fontFamily: 'var(--font-display)', fontSize: '1.6rem',
+                  background: 'linear-gradient(135deg, #D4A853, #F5C842)',
+                  WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                  marginBottom: '0.25rem',
+                }}>
+                  Bible & Religious Education
+                </h2>
+                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem' }}>
+                  Grade {selectedGrade} · CBC Kenya CRE · English Bible · Biblia ya Kiswahili · Baibũri ya Gĩkũyũ · Muma mar Dholuo
+                </p>
+              </div>
+              {/* Quick Stats */}
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                {[
+                  { label: 'Verses', val: '12+', icon: '📖' },
+                  { label: 'Stories', val: '5', icon: '📚' },
+                  { label: 'Challenges', val: '11', icon: '🎯' },
+                  { label: 'Languages', val: '4', icon: '🌍' },
+                ].map(s => (
+                  <div key={s.label} style={{
+                    textAlign: 'center', padding: '0.5rem 0.75rem',
+                    background: 'rgba(212,168,83,0.1)', borderRadius: 12,
+                    border: '1px solid rgba(212,168,83,0.2)',
+                  }}>
+                    <div style={{ fontSize: '1.2rem' }}>{s.icon}</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#D4A853' }}>{s.val}</div>
+                    <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* RE Curriculum Topics for selected grade */}
+            {getTopicsByGradeAndSubject(selectedGrade, 'religious').length > 0 && (
+              <div style={{ marginBottom: '2rem' }}>
+                <h3 style={{ fontSize: '1.1rem', fontFamily: 'var(--font-display)', marginBottom: '1rem', color: '#D4A853' }}>
+                  📋 Grade {selectedGrade} CRE Curriculum Topics
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
+                  {getTopicsByGradeAndSubject(selectedGrade, 'religious').map((topic, i) => (
+                    <div key={topic.id} style={{
+                      padding: '1rem', background: 'rgba(120,113,108,0.1)',
+                      border: '1px solid rgba(212,168,83,0.2)', borderRadius: 16,
+                    }}>
+                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                        <div style={{
+                          width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                          background: 'rgba(212,168,83,0.15)', display: 'flex', alignItems: 'center',
+                          justifyContent: 'center', fontWeight: 700, color: '#D4A853', fontSize: '0.85rem',
+                        }}>{i + 1}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#D4A853', marginBottom: 3 }}>{topic.title}</div>
+                          <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', marginBottom: 6, lineHeight: 1.5 }}>{topic.description}</div>
+                          <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>📌 {topic.strand} · {topic.subStrand}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Bible Interactive Module */}
+            <BibleChallenge
+              grade={selectedGrade}
+              initialLanguage={
+                selectedLanguage === 'kikuyu' ? 'kikuyu'
+                : selectedLanguage === 'luo' ? 'luo'
+                : selectedLanguage === 'kiswahili' ? 'kiswahili'
+                : 'english'
+              }
+            />
+          </div>
+        )}
+
         {/* Flashy Localhost Button & Footer */}
         <footer style={{
           marginTop: '5rem',
