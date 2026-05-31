@@ -393,6 +393,9 @@ function ImageGallery() {
     { src: '/african-health.png', label: '🏥 Health & Hygiene' },
     { src: '/african-encyclopedia.png', label: '📚 Encyclopedia' },
     { src: '/robokid-mascot.png', label: '🤖 Robot Friend' },
+    { src: '/african-marketplace-math.png', label: '🏪 Market Math' },
+    { src: '/african-farming-garden.png', label: '🌻 School Garden' },
+    { src: '/kenyan-flag-shield.png', label: '🛡️ Kenya Shield' },
   ];
 
   return (
