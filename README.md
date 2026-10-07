@@ -1,89 +1,125 @@
-# RoboKid 🤖🇰🇪
+![RoboKid](assets/tovutech-banner.svg)
 
-**AI-Powered CBC Learning Platform for Kenyan Children (Grade 1-3)**
+<p align="center">
+  <img alt="Status: Prototype" src="https://img.shields.io/badge/status-prototype-F97316?style=for-the-badge">
+  <img alt="Next.js" src="https://img.shields.io/badge/Next.js%2016-TypeScript-0A0F2C?style=for-the-badge&logo=nextdotjs&logoColor=white">
+  <img alt="Gemini" src="https://img.shields.io/badge/AI-Gemini%202.0%20Flash-8B5CF6?style=for-the-badge&logo=googlegemini&logoColor=white">
+  <img alt="Firebase" src="https://img.shields.io/badge/Firebase-Firestore-EC4899?style=for-the-badge&logo=firebase&logoColor=white">
+  <a href="https://www.tovutech.com/projects/robokid/"><img alt="Case study" src="https://img.shields.io/badge/case%20study-tovutech.com-22C55E?style=for-the-badge"></a>
+</p>
 
-RoboKid is an award-winning educational platform designed specifically for Kenyan children in Grade 1 to Grade 3. Built on the Kenya Institute of Curriculum Development (KICD) Competency-Based Curriculum (CBC), RoboKid brings learning to life through artificial intelligence, interactive games, and mother tongue support.
+## What it is
 
-## 🌟 Features
+**RoboKid** is a learning web app prototype for Kenyan children in **Grade 1–3**, built around the KICD Competency-Based Curriculum (CBC). It combines a browsable CBC curriculum reference, practice questions, simple learning games and AI-generated stories and puzzles, with support for English, Kiswahili and three mother tongues.
 
-- **📖 CBC Encyclopedia** — 41 sub-strands, 160 learning outcomes, 164 activities from the official KICD Targeter
-- **🌐 5 Languages** — English, Kiswahili, Gĩkũyũ (Kikuyu), Dholuo (Luo), Somali with AI translation
-- **🤖 AI Content Generation** — Google Gemini generates unlimited puzzles, stories, and quizzes
-- **🎮 10+ Interactive Games** — Memory match, word search, math race, and more
-- **📝 150+ Exam Questions** — KNEC/KEYA-aligned practice assessments
-- **💻 Code Lab** — Python lessons with Kenyan examples
-- **📚 Content Agent** — Self-learning content library (stories, riddles, poems, vocabulary)
-- **🔤 Visual Dictionary** — 70+ words across 4 African languages with live translation
-- **🎨 African-Themed Design** — 7+ original illustrations celebrating Kenyan culture
+It is aimed at parents, teachers and young learners, and is an early-stage product: content is curated from public CBC curriculum designs and AI output should be reviewed by a teacher before classroom use.
 
-## 🛠️ Tech Stack
+## What it does
 
-- **Frontend:** Next.js 15 (App Router) + TypeScript
-- **AI:** Google Gemini 2.0 Flash API
-- **Translation:** MyMemory API (free) + Gemini + Built-in Dictionary
-- **Database:** Firebase Firestore (translation cache + learning model)
-- **Styling:** Custom CSS Design System (Dark mode, Glassmorphism)
-- **Images:** AI-generated African-themed educational illustrations
+- 📖 **CBC encyclopedia** – about 40 lower-primary sub-strands (Mathematics, Environmental Activities, English, Kiswahili) with learning outcomes, key inquiry questions, suggested activities, competencies, values, assessment criteria and a Kenyan-context note (`src/lib/cbc-encyclopedia.ts`).
+- 📝 **Exam bank** – 84 practice questions with answers, explanations and difficulty levels (`src/lib/exam-bank.ts`).
+- 🎮 **Games hub** – 10 games: memory match, math race, word scramble, spelling, sequencing, animals, food, colours, counting and story builder.
+- 🤖 **AI content** – Gemini 2.0 Flash generates stories, puzzles, quizzes and vocabulary with CBC context; a Hugging Face model (Qwen2.5-1.5B-Instruct) is used as a fallback when an `HF_TOKEN` is set.
+- 🌐 **Five languages** – English, Kiswahili, Gĩkũyũ, Dholuo and Somali, using a built-in dictionary, the free MyMemory API (English ↔ Kiswahili) and Gemini; translations are cached in browser storage and Firestore.
+- 💻 **Code Lab** – beginner Python lessons with Kenyan examples, in the dashboard.
+- ✍️ **Extras** – handwriting practice, a piano, visual maths helper, mother-tongue cards, a videos page and a project playbook.
 
-## 🚀 Getting Started
+## How it works
 
-```bash
-# Clone the repository
-git clone https://github.com/jmsmuigai/RoboKid.git
-cd RoboKid/robokid-app
-
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.local.example .env.local
-# Add your GOOGLE_API_KEY
-
-# Run the development server
-npm run dev
+```mermaid
+flowchart LR
+    U[Learner / parent<br/>Next.js pages] --> D[Dashboard · games ·<br/>encyclopedia · videos]
+    D --> L[Local data<br/>CBC encyclopedia · exam bank · curriculum]
+    D --> API[Next.js API routes<br/>/api/gemini · /api/generate ·<br/>/api/content · /api/translate · /api/encyclopedia]
+    API --> G[Google Gemini 2.0 Flash]
+    API -.fallback.-> H[Hugging Face<br/>Qwen2.5-1.5B]
+    API --> M[MyMemory translation]
+    API --> F[(Firestore cache<br/>translations + content)]
 ```
 
-Visit [http://localhost:3000](http://localhost:3000)
+## Tech stack
 
-## 📁 Project Structure
+| Area | Tools |
+|---|---|
+| Framework | Next.js 16 (App Router), React 19, TypeScript |
+| Styling | Tailwind CSS v4 + custom CSS, Google Fonts |
+| 3D / visuals | three.js, @react-three/fiber, @react-three/drei; illustrations in `public/` |
+| AI | `@google/generative-ai` / Gemini REST API, Hugging Face inference (optional) |
+| Translation | Built-in dictionary, MyMemory API, Gemini |
+| Data | Firebase Firestore (cache), browser storage |
+
+## Getting started
+
+```bash
+git clone https://github.com/jmsmuigai/RoboKid.git
+cd RoboKid
+npm install
+cp .env.local.example .env.local   # then fill in your own keys
+npm run dev                         # http://localhost:3000
+```
+
+Environment variables (see `.env.local.example`):
+
+| Variable | Needed for |
+|---|---|
+| `GEMINI_API_KEY` / `GOOGLE_API_KEY` | AI content generation and translation (server-side) |
+| `HF_TOKEN` | Optional Hugging Face fallback model |
+| `NEXT_PUBLIC_FIREBASE_*` | Firestore cache (public client config) |
+
+The app still runs without keys, but AI generation and cloud caching are then unavailable.
+
+Other scripts: `npm run build`, `npm run start`, `npm run lint`.
+
+### Project structure
 
 ```
 src/
 ├── app/
-│   ├── page.tsx          # Landing page
-│   ├── dashboard/        # Interactive learning hub
-│   ├── encyclopedia/     # CBC curriculum browser
-│   ├── games/            # Games hub (10+ games)
-│   ├── playbook/         # Project playbook
-│   └── api/
-│       ├── gemini/       # AI content generation
-│       ├── encyclopedia/ # Curriculum API
-│       ├── translate/    # Translation API
-│       └── content/      # Content agent API
-├── lib/
-│   ├── cbc-encyclopedia.ts    # 41 KICD sub-strands
-│   ├── translation-service.ts # Multi-engine translator
-│   ├── content-agent.ts       # Self-learning content system
-│   ├── curriculum-data.ts     # Topic data
-│   ├── exam-bank.ts           # 150+ questions
-│   └── constants.ts           # Global config
-└── types/
-    └── index.ts               # TypeScript interfaces
+│   ├── page.tsx            # landing page
+│   ├── select-grade/       # grade picker
+│   ├── dashboard/          # learning hub (lessons, Code Lab, practice)
+│   ├── encyclopedia/       # CBC curriculum browser
+│   ├── games/              # games hub
+│   ├── videos/, playbook/
+│   └── api/                # gemini, generate, content, translate, encyclopedia
+├── components/             # handwriting, piano, maths helper, mother-tongue cards …
+└── lib/                    # cbc-encyclopedia, exam-bank, curriculum-data, translation-service,
+                            # content-agent, learning-model, gemini, firebase, constants
 ```
 
-## 🇰🇪 Curriculum Coverage
+### Curriculum coverage
 
-| Subject | Strands | Sub-Strands |
-|---------|---------|-------------|
-| Mathematics | Numbers, Measurement, Geometry | 19 |
-| Environmental | Social, Natural, Health/Hygiene | 15 |
-| English | Listening, Reading, Writing, Comprehension | 4 |
-| Kiswahili | Kusikiliza, Kusoma, Ufahamu | 3 |
+| Subject | Strands |
+|---|---|
+| Mathematics | Numbers, Measurement, Geometry |
+| Environmental Activities | Social, Natural, Health / Hygiene |
+| English | Listening, Reading, Writing, Comprehension |
+| Kiswahili | Kusikiliza, Kusoma, Ufahamu |
 
-## 📄 License
+## Data & privacy
 
-MIT License — Made with ❤️ in Kenya 🇰🇪
+- Curriculum content is compiled from public KICD CBC curriculum designs and teacher resources (sources listed in `src/lib/cbc-encyclopedia.ts`).
+- The app does not ask for children's names or accounts. Translation and generated content may be cached in Firestore; prompts are sent to Google Gemini (and Hugging Face if enabled).
+- No personal data is committed to this repository.
 
-## 👤 Author
+## Status & roadmap
 
-James Muigai ([@jmsmuigai](https://github.com/jmsmuigai))
+**Status:** prototype under active development; not yet piloted in schools.
+
+Possible next steps:
+- Teacher review of AI-generated content and of mother-tongue translations.
+- Expand the exam bank and add progress tracking for learners.
+- Offline / low-bandwidth mode for schools with weak connectivity.
+- Add a `LICENSE` file (the previous README stated MIT, but no licence file is included yet).
+
+## Security
+
+See [SECURITY.md](SECURITY.md). Keys belong in `.env.local` or hosting secrets — never in the code.
+
+---
+
+<p align="center">
+  <b>Built by James M. Mburu · TovuTech Limited</b><br>
+  <a href="https://www.tovutech.com">https://www.tovutech.com</a> · <a href="mailto:intelligence@tovutech.com">intelligence@tovutech.com</a><br>
+  📖 Case study: <a href="https://www.tovutech.com/projects/robokid/">tovutech.com/projects/robokid</a>
+</p>

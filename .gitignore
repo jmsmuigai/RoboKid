@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Secrets and local environment (added by docs refresh)
+.env
+.env.*
+!.env.example
+*.key
+serviceAccount*.json
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.venv/
